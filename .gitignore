@@ -1,0 +1,19 @@
+# root
+.env
+docker-compose.override.yml
+
+# backend
+backend/target/
+backend/.idea/
+backend/.classpath
+backend/.project
+backend/.settings/
+
+# frontend
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# ai
+ai/.venv/
+ai/__pycache__/
