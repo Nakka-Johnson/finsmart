@@ -40,6 +40,10 @@ public class Account {
   @Builder.Default
   private String currency = "GBP";
 
+  @Column(nullable = false, precision = 12, scale = 2)
+  @Builder.Default
+  private java.math.BigDecimal balance = java.math.BigDecimal.ZERO;
+
   @Column(nullable = false, updatable = false)
   private Instant createdAt;
 

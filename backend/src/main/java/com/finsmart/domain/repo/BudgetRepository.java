@@ -10,6 +10,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface BudgetRepository extends JpaRepository<Budget, UUID> {
 
+  List<Budget> findByUserId(UUID userId);
+
   List<Budget> findByUserIdAndMonthAndYear(UUID userId, int month, int year);
 
   Optional<Budget> findByUserIdAndCategoryIdAndMonthAndYear(
