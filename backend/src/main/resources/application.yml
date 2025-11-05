@@ -1,22 +1,27 @@
 server:
-  port: 8080
+  port: 8081
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/finsmartdb
+    url: jdbc:postgresql://127.0.0.1:5432/finsmartdb?sslmode=disable
     username: finsmart
     password: finsmartpwd
     driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate.format_sql: true
-  jackson:
-    serialization.WRITE_DATES_AS_TIMESTAMPS: false
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health,info,metrics
+      ddl-auto: validate         # Flyway manages schema
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    clean-disabled: true
+
+logging:
+  level:
+    org.postgresql: DEBUG
+    com.zaxxer.hikari: DEBUG
+
+app:
+  jwt:
+    secret: "change-this-to-a-long-random-string"
+    issuer: "finsmart"
+    expires-minutes: 60
