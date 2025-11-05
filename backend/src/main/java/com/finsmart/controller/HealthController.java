@@ -9,8 +9,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api")
 public class HealthController {
 
-    @GetMapping(value = "/health", produces = MediaType.TEXT_PLAIN_VALUE)
-    public String health() {
-        return "FinSmart backend is running";
-    }
+  @GetMapping(value = "/health", produces = MediaType.TEXT_PLAIN_VALUE)
+  public String health() {
+    return "FinSmart backend is running";
+  }
 }

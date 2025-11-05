@@ -86,6 +86,27 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+			<plugin>
+				<groupId>com.diffplug.spotless</groupId>
+				<artifactId>spotless-maven-plugin</artifactId>
+				<version>2.43.0</version>
+				<configuration>
+					<java>
+						<googleJavaFormat>
+							<version>1.19.2</version>
+							<style>GOOGLE</style>
+						</googleJavaFormat>
+					</java>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>apply</goal>
+						</goals>
+						<phase>validate</phase>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 

@@ -1,0 +1,4 @@
+﻿{
+  "*.java": ["powershell -NoProfile -Command \"cd backend; mvn -q spotless:apply\""],
+  "frontend/src/**/*.{ts,tsx,js,jsx}": ["prettier --write","eslint --fix"]
+}

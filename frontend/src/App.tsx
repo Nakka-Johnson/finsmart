@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import './App.css'
+import { useState, useEffect } from 'react';
+import './App.css';
 
 interface HealthStatus {
   backend: { status: string; text: string };
@@ -13,7 +13,7 @@ interface InsightResult {
 function App() {
   const [health, setHealth] = useState<HealthStatus>({
     backend: { status: 'checking', text: 'Checking...' },
-    ai: { status: 'checking', text: 'Checking...' }
+    ai: { status: 'checking', text: 'Checking...' },
   });
   const [insightResult, setInsightResult] = useState<string>('');
   const [loading, setLoading] = useState(false);
@@ -31,13 +31,13 @@ function App() {
         ...prev,
         backend: {
           status: backendRes.ok ? 'ok' : 'error',
-          text: backendText || 'Backend unreachable'
-        }
+          text: backendText || 'Backend unreachable',
+        },
       }));
-    } catch (error) {
+    } catch {
       setHealth(prev => ({
         ...prev,
-        backend: { status: 'error', text: 'Backend unreachable' }
+        backend: { status: 'error', text: 'Backend unreachable' },
       }));
     }
 
@@ -49,13 +49,13 @@ function App() {
         ...prev,
         ai: {
           status: aiRes.ok ? 'ok' : 'error',
-          text: aiData.status || 'AI service error'
-        }
+          text: aiData.status || 'AI service error',
+        },
       }));
-    } catch (error) {
+    } catch {
       setHealth(prev => ({
         ...prev,
-        ai: { status: 'error', text: 'AI service unreachable' }
+        ai: { status: 'error', text: 'AI service unreachable' },
       }));
     }
   };
@@ -63,24 +63,24 @@ function App() {
   const runSampleInsight = async () => {
     setLoading(true);
     setInsightResult('');
-    
+
     const sampleData = {
       transactions: [
-        { date: '2025-01-01', amount: 100.50, category: 'Food' },
+        { date: '2025-01-01', amount: 100.5, category: 'Food' },
         { date: '2025-01-02', amount: 50.0, category: 'Transport' },
-        { date: '2025-01-03', amount: 75.25, category: 'Shopping' }
-      ]
+        { date: '2025-01-03', amount: 75.25, category: 'Shopping' },
+      ],
     };
 
     try {
       const res = await fetch('http://localhost:8081/api/insights/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(sampleData)
+        body: JSON.stringify(sampleData),
       });
-      
+
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      
+
       const data: InsightResult = await res.json();
       setInsightResult(data.summary);
     } catch (error) {
@@ -93,9 +93,16 @@ function App() {
   return (
     <div style={{ padding: '40px', fontFamily: 'sans-serif', maxWidth: '800px', margin: '0 auto' }}>
       <h1 style={{ marginBottom: '30px' }}>FinSmart Dashboard</h1>
-      
+
       {/* Health Status Section */}
-      <div style={{ marginBottom: '30px', padding: '20px', border: '1px solid #ddd', borderRadius: '8px' }}>
+      <div
+        style={{
+          marginBottom: '30px',
+          padding: '20px',
+          border: '1px solid #ddd',
+          borderRadius: '8px',
+        }}
+      >
         <h2 style={{ marginTop: 0 }}>System Health</h2>
         <div style={{ display: 'flex', gap: '20px', flexDirection: 'column' }}>
           <div>
@@ -111,15 +118,15 @@ function App() {
             </span>
           </div>
         </div>
-        <button 
+        <button
           onClick={checkHealth}
-          style={{ 
-            marginTop: '15px', 
-            padding: '8px 16px', 
+          style={{
+            marginTop: '15px',
+            padding: '8px 16px',
             cursor: 'pointer',
             border: '1px solid #ccc',
             borderRadius: '4px',
-            background: '#f0f0f0'
+            background: '#f0f0f0',
           }}
         >
           Refresh Status
@@ -129,31 +136,33 @@ function App() {
       {/* AI Insights Section */}
       <div style={{ padding: '20px', border: '1px solid #ddd', borderRadius: '8px' }}>
         <h2 style={{ marginTop: 0 }}>AI Insights</h2>
-        <button 
+        <button
           onClick={runSampleInsight}
           disabled={loading}
-          style={{ 
-            padding: '10px 20px', 
+          style={{
+            padding: '10px 20px',
             fontSize: '16px',
             cursor: loading ? 'not-allowed' : 'pointer',
             border: 'none',
             borderRadius: '4px',
             background: loading ? '#ccc' : '#007bff',
             color: 'white',
-            fontWeight: 'bold'
+            fontWeight: 'bold',
           }}
         >
           {loading ? 'Analyzing...' : 'Run Sample Insight'}
         </button>
-        
+
         {insightResult && (
-          <div style={{ 
-            marginTop: '20px', 
-            padding: '15px', 
-            background: '#f8f9fa',
-            border: '1px solid #dee2e6',
-            borderRadius: '4px'
-          }}>
+          <div
+            style={{
+              marginTop: '20px',
+              padding: '15px',
+              background: '#f8f9fa',
+              border: '1px solid #dee2e6',
+              borderRadius: '4px',
+            }}
+          >
             <h3 style={{ marginTop: 0, fontSize: '14px', color: '#666' }}>Analysis Result:</h3>
             <p style={{ margin: 0, fontSize: '16px' }}>{insightResult}</p>
           </div>
@@ -163,4 +172,4 @@ function App() {
   );
 }
 
-export default App
+export default App;

@@ -1,4 +1,61 @@
-# React + TypeScript + Vite
+# FinSmart Frontend
+
+React + TypeScript + Vite frontend for FinSmart financial management application.
+
+## Development
+
+```bash
+# Start dev server
+npm run dev
+
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+```
+
+## Code Quality
+
+### Linting
+
+Check code for issues:
+```bash
+npm run lint
+```
+
+Auto-fix linting issues:
+```bash
+npm run lint:fix
+```
+
+### Formatting
+
+Format code with Prettier:
+```bash
+npm run format
+```
+
+Check if code is formatted:
+```bash
+npm run format:check
+```
+
+### Configuration
+
+- **ESLint**: `.eslintrc.cjs` - TypeScript, React, and React Hooks rules
+- **Prettier**: `.prettierrc` - Code formatting rules (integrates with ESLint)
+
+### Pre-commit Workflow
+
+Before committing code:
+```bash
+npm run lint:fix && npm run format
+```
+
+---
+
+## React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
