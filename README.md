@@ -57,6 +57,49 @@ npm run dev
 # Runs on http://localhost:5173
 ```
 
+## Local Green Build
+
+Run these scripts before pushing to ensure your changes are CI-ready:
+
+### Full Local Build (CI-like)
+```powershell
+.\scripts\local_build.ps1
+```
+
+Runs comprehensive build for all services with detailed logging:
+- **Backend**: `mvn clean test package` (skips integration tests)
+- **Frontend**: `npm ci && npm run build`
+- **AI**: Virtual environment setup + dependency install + smoke test
+
+All output logged to `_local_logs/` directory. Exits non-zero on failure.
+
+### Code Formatting & Linting
+```powershell
+.\scripts\local_lint.ps1
+```
+
+Automatically fixes code style issues:
+- **Backend**: Google Java Format via Spotless
+- **Frontend**: Prettier formatting + ESLint auto-fix
+- **AI**: Optional ruff formatting (if available)
+
+Always exits 0 (never blocks commits).
+
+### Recommended Workflow
+```powershell
+# 1. Make your changes
+# 2. Format code
+.\scripts\local_lint.ps1
+
+# 3. Verify build passes
+.\scripts\local_build.ps1
+
+# 4. Commit if green
+git add .
+git commit -m "feat: your feature"
+git push
+```
+
 ## Automation Scripts
 
 Located in `scripts/` directory:
