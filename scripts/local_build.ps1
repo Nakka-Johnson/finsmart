@@ -1,4 +1,4 @@
-#requires -Version 7.2
+#requires -Version 5.1
 <#
 .SYNOPSIS
     Local build script for FinSmart monorepo - ensures clean builds for all services.
@@ -41,7 +41,7 @@ try {
     "" | Out-File $backendLog -Append
     
     # Run Maven build
-    & mvn -B -DskipITs=true -Dtestcontainers.check.skip=true clean test package 2>&1 | 
+    & mvn -B "-DskipITs=true" "-Dtestcontainers.check.skip=true" clean test package 2>&1 | 
         Tee-Object -FilePath $backendLog -Append | Out-Null
     
     if ($LASTEXITCODE -ne 0) {
@@ -162,17 +162,21 @@ try {
     
     # Smoke test imports
     "Running smoke test..." | Tee-Object -FilePath $aiLog -Append
+    
+    # Set UTF-8 encoding for Python output
+    $env:PYTHONIOENCODING = "utf-8"
+    
     $smokeTest = @'
 import sys
 try:
     import fastapi
     import pydantic
-    print("✓ FastAPI imported successfully")
-    print("✓ Pydantic imported successfully")
-    print("✓ AI service smoke test passed")
+    print("[OK] FastAPI imported successfully")
+    print("[OK] Pydantic imported successfully")
+    print("[OK] AI service smoke test passed")
     sys.exit(0)
 except ImportError as e:
-    print(f"✗ Import failed: {e}")
+    print(f"[FAIL] Import failed: {e}")
     sys.exit(1)
 '@
     

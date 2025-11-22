@@ -180,8 +180,8 @@ export function Budgets() {
                 <h3>Summary</h3>
                 <div className="budget-summary-grid">
                   {summary.map(s => {
-                    const percentage = getProgressPercentage(s.spent, s.limit);
-                    const color = getProgressColor(s.spent, s.limit);
+                    const percentage = getProgressPercentage(s.spentAmount, s.budgetAmount);
+                    const color = getProgressColor(s.spentAmount, s.budgetAmount);
                     return (
                       <div key={s.categoryId} className="budget-summary-card">
                         <div style={{ marginBottom: '0.5rem' }}>
@@ -190,7 +190,7 @@ export function Budgets() {
                         <div
                           style={{ marginBottom: '0.5rem', fontSize: '0.875rem', color: '#666' }}
                         >
-                          {formatCurrency(s.spent)} / {formatCurrency(s.limit)}
+                          {formatCurrency(s.spentAmount)} / {formatCurrency(s.budgetAmount)}
                         </div>
                         <div className="progress-bar">
                           <div
@@ -201,11 +201,11 @@ export function Budgets() {
                             }}
                           />
                         </div>
-                        {s.spent > s.limit && (
+                        {s.spentAmount > s.budgetAmount && (
                           <div
                             style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#ef4444' }}
                           >
-                            Over budget by {formatCurrency(s.spent - s.limit)}
+                            Over budget by {formatCurrency(s.spentAmount - s.budgetAmount)}
                           </div>
                         )}
                       </div>

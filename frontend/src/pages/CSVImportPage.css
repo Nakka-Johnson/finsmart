@@ -1,0 +1,744 @@
+/**
+ * CSV Import v2 Styles - Sprint-1
+ */
+
+.csv-import-page {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* ============================================================================
+ * Progress Steps
+ * ========================================================================= */
+
+.import-steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 3rem;
+  padding: 2rem;
+  background: white;
+  border-radius: 0.5rem;
+  border: 1px solid #E5E7EB;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 120px;
+}
+
+.step-number {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  background: #F3F4F6;
+  color: #9CA3AF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  transition: all 0.3s;
+}
+
+.step.active .step-number {
+  background: #4F46E5;
+  color: white;
+  transform: scale(1.1);
+}
+
+.step.completed .step-number {
+  background: #10B981;
+  color: white;
+}
+
+.step-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #6B7280;
+  text-align: center;
+}
+
+.step.active .step-label {
+  color: #4F46E5;
+}
+
+.step.completed .step-label {
+  color: #10B981;
+}
+
+.step-divider {
+  width: 80px;
+  height: 2px;
+  background: #E5E7EB;
+  margin: 0 1rem;
+  position: relative;
+  top: -1rem;
+}
+
+/* ============================================================================
+ * Upload Step
+ * ========================================================================= */
+
+.upload-step {
+  display: flex;
+  justify-content: center;
+}
+
+.upload-card {
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 0.5rem;
+  padding: 2rem;
+  width: 100%;
+  max-width: 600px;
+}
+
+.upload-card h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: #111827;
+}
+
+.account-select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #D1D5DB;
+  border-radius: 0.375rem;
+  font-size: 1rem;
+  margin-bottom: 2rem;
+  background: white;
+  cursor: pointer;
+}
+
+.account-select:focus {
+  outline: none;
+  border-color: #4F46E5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.file-drop-zone {
+  position: relative;
+  border: 2px dashed #D1D5DB;
+  border-radius: 0.5rem;
+  padding: 3rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 2rem;
+}
+
+.file-drop-zone:hover {
+  border-color: #4F46E5;
+  background: #F9FAFB;
+}
+
+.file-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.file-drop-content {
+  pointer-events: none;
+}
+
+.upload-icon,
+.file-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.upload-text {
+  font-size: 1.125rem;
+  font-weight: 500;
+  color: #111827;
+  margin: 0 0 0.5rem 0;
+}
+
+.upload-hint {
+  font-size: 0.875rem;
+  color: #6B7280;
+  margin: 0;
+}
+
+.file-name {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #111827;
+  margin: 0 0 0.25rem 0;
+}
+
+.file-size {
+  font-size: 0.875rem;
+  color: #6B7280;
+  margin: 0;
+}
+
+.csv-format-hint {
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 0.375rem;
+  padding: 1rem;
+  margin-bottom: 2rem;
+}
+
+.csv-format-hint h3 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1E40AF;
+  margin: 0 0 0.5rem 0;
+}
+
+.csv-format-hint ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: #1E3A8A;
+  font-size: 0.875rem;
+}
+
+.csv-format-hint li {
+  margin-bottom: 0.25rem;
+}
+
+/* ============================================================================
+ * Map Headers Step
+ * ========================================================================= */
+
+.map-headers-step {
+  display: flex;
+  justify-content: center;
+}
+
+.mapping-card {
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 0.5rem;
+  padding: 2rem;
+  width: 100%;
+  max-width: 800px;
+}
+
+.mapping-card h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  color: #111827;
+}
+
+.mapping-card .subtitle {
+  color: #6B7280;
+  margin: 0 0 2rem 0;
+}
+
+.mapping-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.mapping-row {
+  display: grid;
+  grid-template-columns: 150px 1fr 200px;
+  gap: 1rem;
+  align-items: center;
+}
+
+.mapping-label {
+  font-weight: 500;
+  color: #374151;
+}
+
+.mapping-label.required::after {
+  content: ' *';
+  color: #EF4444;
+}
+
+.mapping-label.optional {
+  color: #6B7280;
+}
+
+.mapping-select {
+  padding: 0.625rem;
+  border: 1px solid #D1D5DB;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  background: white;
+  cursor: pointer;
+}
+
+.mapping-select:focus {
+  outline: none;
+  border-color: #4F46E5;
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.mapping-sample {
+  padding: 0.625rem;
+  background: #F9FAFB;
+  border: 1px solid #E5E7EB;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  color: #6B7280;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mapping-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 2rem;
+  border-top: 1px solid #E5E7EB;
+}
+
+/* ============================================================================
+ * Preview Step
+ * ========================================================================= */
+
+.preview-step {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.preview-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.stat-card {
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.stat-card.highlight {
+  background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+  border-color: #C7D2FE;
+}
+
+.stat-value {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #111827;
+  margin-bottom: 0.5rem;
+}
+
+.stat-card.highlight .stat-value {
+  color: #4F46E5;
+}
+
+.stat-label {
+  font-size: 0.875rem;
+  color: #6B7280;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+
+.preview-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.btn-ai {
+  background: linear-gradient(135deg, #8B5CF6 0%, #6366F1 100%);
+  color: white;
+  border: none;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2);
+}
+
+.btn-ai:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(139, 92, 246, 0.3);
+}
+
+.preview-table-container {
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.preview-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.preview-table thead {
+  background: #F9FAFB;
+  border-bottom: 2px solid #E5E7EB;
+}
+
+.preview-table th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: #374151;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.preview-table tbody tr {
+  border-bottom: 1px solid #F3F4F6;
+  transition: background 0.15s;
+}
+
+.preview-table tbody tr:hover {
+  background: #F9FAFB;
+}
+
+.preview-table tbody tr.selected-row {
+  background: #EFF6FF;
+}
+
+.preview-table tbody tr.duplicate-row {
+  background: #FEF2F2;
+  opacity: 0.7;
+}
+
+.preview-table td {
+  padding: 1rem;
+  color: #111827;
+  font-size: 0.875rem;
+}
+
+.col-select {
+  width: 60px;
+  text-align: center;
+}
+
+.col-select input[type="checkbox"] {
+  width: 1.125rem;
+  height: 1.125rem;
+  cursor: pointer;
+}
+
+.col-select input[type="checkbox"]:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.col-date {
+  width: 120px;
+}
+
+.col-amount {
+  width: 120px;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-weight: 500;
+}
+
+.col-category {
+  width: 150px;
+}
+
+.col-actions {
+  width: 220px;
+}
+
+.duplicate-badge {
+  display: inline-block;
+  background: #FEE2E2;
+  color: #991B1B;
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-left: 0.5rem;
+}
+
+.no-category {
+  color: #9CA3AF;
+  font-style: italic;
+}
+
+.ai-suggestion {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.suggestion-text {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+  color: #8B5CF6;
+}
+
+.confidence {
+  font-size: 0.75rem;
+  color: #6B7280;
+}
+
+.btn-apply-suggestion {
+  background: #10B981;
+  color: white;
+  border: none;
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-apply-suggestion:hover {
+  background: #059669;
+}
+
+.suggestion-applied {
+  color: #10B981;
+  font-weight: 500;
+  font-size: 0.875rem;
+}
+
+.import-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #E5E7EB;
+}
+
+/* ============================================================================
+ * Importing State
+ * ========================================================================= */
+
+.importing-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 3px solid #E5E7EB;
+  border-top-color: #4F46E5;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1.5rem;
+}
+
+.spinner.large {
+  width: 4rem;
+  height: 4rem;
+  border-width: 4px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.importing-state h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  color: #111827;
+}
+
+.importing-state p {
+  color: #6B7280;
+  margin: 0;
+}
+
+/* ============================================================================
+ * Complete Step
+ * ========================================================================= */
+
+.complete-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+}
+
+.success-icon {
+  width: 5rem;
+  height: 5rem;
+  border-radius: 50%;
+  background: #10B981;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 2rem;
+}
+
+.complete-step h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 1.5rem 0;
+  color: #111827;
+}
+
+.import-summary {
+  margin-bottom: 2rem;
+}
+
+.import-summary p {
+  font-size: 1.125rem;
+  color: #374151;
+  margin: 0.5rem 0;
+}
+
+.import-summary .skipped {
+  color: #6B7280;
+  font-size: 1rem;
+}
+
+.complete-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+/* ============================================================================
+ * Buttons
+ * ========================================================================= */
+
+.btn-primary,
+.btn-secondary {
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.375rem;
+  font-weight: 500;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: none;
+}
+
+.btn-primary {
+  background: #4F46E5;
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #4338CA;
+}
+
+.btn-primary:disabled {
+  background: #9CA3AF;
+  cursor: not-allowed;
+}
+
+.btn-primary.btn-large {
+  padding: 1rem 2rem;
+  font-size: 1.125rem;
+}
+
+.btn-secondary {
+  background: white;
+  color: #374151;
+  border: 1px solid #D1D5DB;
+}
+
+.btn-secondary:hover {
+  background: #F9FAFB;
+  border-color: #9CA3AF;
+}
+
+.btn-secondary:is(a) {
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+/* ============================================================================
+ * Responsive
+ * ========================================================================= */
+
+@media (max-width: 768px) {
+  .csv-import-page {
+    padding: 1rem;
+  }
+
+  .import-steps {
+    padding: 1rem;
+  }
+
+  .step {
+    min-width: 80px;
+  }
+
+  .step-number {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1rem;
+  }
+
+  .step-label {
+    font-size: 0.75rem;
+  }
+
+  .step-divider {
+    width: 40px;
+    margin: 0 0.5rem;
+  }
+
+  .upload-card,
+  .mapping-card {
+    padding: 1.5rem;
+  }
+
+  .mapping-row {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+
+  .mapping-label {
+    font-weight: 600;
+  }
+
+  .preview-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .preview-table-container {
+    overflow-x: auto;
+  }
+
+  .preview-table {
+    min-width: 800px;
+  }
+
+  .import-actions,
+  .mapping-actions,
+  .complete-actions {
+    flex-direction: column;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+  }
+}

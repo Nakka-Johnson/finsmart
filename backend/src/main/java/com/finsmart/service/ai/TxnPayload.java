@@ -11,9 +11,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TxnPayload {
+  private String id; // Transaction ID (for ignore lists)
   private String date; // ISO format: "2025-01-15"
   private BigDecimal amount;
   private String category; // nullable
   private String direction; // "DEBIT" or "CREDIT"
   private String description; // nullable
+  private String merchant; // nullable
 }

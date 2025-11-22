@@ -25,6 +25,13 @@ interface RequestOptions {
   headers?: Record<string, string>;
 }
 
+// 401 handler - will be set by App component
+let handle401: (() => void) | null = null;
+
+export function set401Handler(handler: () => void) {
+  handle401 = handler;
+}
+
 async function request<T>(endpoint: string, options: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body, token, headers = {} } = options;
 
@@ -52,6 +59,12 @@ async function request<T>(endpoint: string, options: RequestOptions = {}): Promi
 
   try {
     const response = await fetch(url, config);
+
+    // Handle 401 Unauthorized
+    if (response.status === 401 && handle401) {
+      handle401();
+      throw new HttpError(401, 'Session expired. Please log in again.');
+    }
 
     // Handle empty responses (204 No Content)
     if (response.status === 204) {

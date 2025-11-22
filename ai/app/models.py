@@ -7,11 +7,13 @@ from pydantic import BaseModel, Field
 class Txn(BaseModel):
     """Transaction model for analysis."""
 
+    id: str | None = Field(None, description="Transaction ID (optional, for ignore lists)")
     date: str = Field(..., description="ISO date string (e.g., 2025-01-15)")
     amount: float = Field(..., ge=0, description="Transaction amount (must be >= 0)")
     category: str | None = Field(None, description="Transaction category (optional)")
     direction: Literal["DEBIT", "CREDIT"] = Field(..., description="Transaction direction")
     description: str | None = Field(None, description="Transaction description (optional)")
+    merchant: str | None = Field(None, description="Merchant name (optional)")
 
 
 class AnalyzeRequest(BaseModel):
@@ -20,17 +22,62 @@ class AnalyzeRequest(BaseModel):
     transactions: list[Txn] = Field(..., min_length=1, description="List of transactions to analyze")
 
 
+class AnomalyRequest(BaseModel):
+    """Request model for POST /anomalies endpoint."""
+
+    transactions: list[Txn] = Field(..., min_length=1, description="List of transactions to analyze")
+    ignoreIds: list[str] | None = Field(None, description="Transaction IDs to ignore (snooze/confirm)")
+
+
+class MerchantInsightRequest(BaseModel):
+    """Request model for merchant insights aggregation."""
+
+    transactions: list[Txn] = Field(..., min_length=1, description="List of transactions to aggregate")
+    monthsBack: int = Field(3, ge=1, le=12, description="Number of months to look back (1-12)")
+
+
+class MerchantMonthly(BaseModel):
+    """Monthly spending for a merchant."""
+
+    month: str = Field(..., description="Month in YYYY-MM format")
+    total: float = Field(..., description="Total spending for that month")
+
+
+class MerchantInsight(BaseModel):
+    """Aggregated merchant spending insights."""
+
+    merchant: str = Field(..., description="Normalized merchant name")
+    monthlyTotals: list[MerchantMonthly] = Field(..., description="Monthly spending breakdown")
+    totalSpending: float = Field(..., description="Total spending across all months")
+
+
+class MerchantInsightResponse(BaseModel):
+    """Response model for merchant insights."""
+
+    merchants: list[MerchantInsight] = Field(..., description="Merchant insights aggregated by month")
+
+
+class CategoryReason(BaseModel):
+    """Detailed reason for category guess."""
+
+    tokens: list[str] = Field(..., description="Matched tokens from transaction")
+    matchedKeywords: list[str] = Field(..., description="Keywords that matched")
+    scores: dict[str, float] = Field(..., description="Score per category")
+    details: str = Field(..., description="Human-readable explanation")
+
+
 class CategoryGuess(BaseModel):
-    """Category guess with reason."""
+    """Category guess with score and detailed reason."""
 
     guessCategory: str = Field(..., description="Guessed category name")
-    reason: str = Field(..., description="Reason for the guess")
+    score: float = Field(..., description="Confidence score for the guess")
+    reason: CategoryReason = Field(..., description="Detailed explanation with tokens and scores")
 
 
 class CategorizeResponse(BaseModel):
     """Response model for POST /categorize endpoint."""
 
-    categories: list[CategoryGuess] = Field(..., description="Category guesses aligned by transaction index")
+    predictions: list[CategoryGuess] = Field(..., description="Category predictions aligned by transaction index")
 
 
 class ForecastItem(BaseModel):

@@ -57,10 +57,14 @@ public class AiClientService {
   }
 
   /**
-   * Call AI /categorize endpoint to get category predictions.
+   * Call AI /categorize endpoint to get category predictions. Falls back to rule-based
+   * categorization if AI service is unavailable.
+   *
+   * <p>Sprint-1 Enhancement: Returns enhanced predictions with scores and detailed reasons.
    *
    * @param txns List of transaction payloads
-   * @return List of maps with keys: guessCategory, reason
+   * @return List of maps with keys: guessCategory, score, reason (with tokens, matchedKeywords,
+   *     scores, details)
    */
   @SuppressWarnings("unchecked")
   public List<Map<String, Object>> categorize(List<TxnPayload> txns) {
@@ -76,15 +80,90 @@ public class AiClientService {
       ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
 
       if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-        return (List<Map<String, Object>>) response.getBody().get("predictions");
+        // Sprint-1: Enhanced response format with predictions array
+        Object predictions = response.getBody().get("predictions");
+        if (predictions instanceof List) {
+          return (List<Map<String, Object>>) predictions;
+        }
+        log.warn("Unexpected response format from AI service, falling back to rule-based");
+        return categorizeByRules(txns);
       } else {
-        throw new AiServiceException(
-            "AI service returned non-2xx status: " + response.getStatusCode());
+        log.warn("AI service returned non-2xx status, falling back to rule-based categorization");
+        return categorizeByRules(txns);
       }
     } catch (RestClientException e) {
-      log.error("Failed to call AI categorize endpoint", e);
-      throw new AiServiceException("AI service unavailable", e);
+      log.warn(
+          "AI service unavailable, falling back to rule-based categorization: {}", e.getMessage());
+      return categorizeByRules(txns);
     }
+  }
+
+  /**
+   * Rule-based categorization using keyword heuristics. Used as fallback when AI service is
+   * unavailable.
+   *
+   * <p>Sprint-1 Enhancement: Returns enhanced format matching AI service response.
+   *
+   * @param txns List of transaction payloads
+   * @return List of maps with keys: guessCategory, score, reason (simplified structure for
+   *     fallback)
+   */
+  private List<Map<String, Object>> categorizeByRules(List<TxnPayload> txns) {
+    return txns.stream()
+        .map(
+            txn -> {
+              String searchText =
+                  (txn.getDescription() != null ? txn.getDescription() : "")
+                      + " "
+                      + (txn.getMerchant() != null ? txn.getMerchant() : "");
+              searchText = searchText.toLowerCase();
+
+              String category;
+              String reason;
+              double score = 0.0;
+
+              // Check most specific patterns first
+              if (searchText.matches(".*\\b(netflix|spotify|prime|itunes)\\b.*")) {
+                category = "Entertainment";
+                reason = "Matched entertainment service keyword";
+                score = 0.75;
+              } else if (searchText.matches(".*\\b(tesco|asda|aldi|sainsbury|morrisons)\\b.*")) {
+                category = "Groceries";
+                reason = "Matched grocery store keyword";
+                score = 0.75;
+              } else if (searchText.matches(".*\\b(uber|bolt|merseyrail|tfl|stagecoach)\\b.*")) {
+                category = "Transport";
+                reason = "Matched transport keyword";
+                score = 0.75;
+              } else if (searchText.matches(
+                  ".*\\b(octopus|british gas|edf|eon|ovo|united utilities)\\b.*")) {
+                category = "Utilities";
+                reason = "Matched utility provider keyword";
+                score = 0.75;
+              } else if (searchText.matches(".*\\b(rent|lettings|landlord)\\b.*")) {
+                category = "Rent";
+                reason = "Matched rent/housing keyword";
+                score = 0.75;
+              } else {
+                category = "Uncategorized";
+                reason = "No rule matched";
+                score = 0.0;
+              }
+
+              // Sprint-1: Enhanced response format
+              Map<String, Object> reasonDetails = new HashMap<>();
+              reasonDetails.put("tokens", new String[] {});
+              reasonDetails.put("matchedKeywords", new String[] {});
+              reasonDetails.put("scores", new HashMap<String, Double>());
+              reasonDetails.put("details", reason);
+
+              Map<String, Object> result = new HashMap<>();
+              result.put("guessCategory", category);
+              result.put("score", score);
+              result.put("reason", reasonDetails);
+              return result;
+            })
+        .toList();
   }
 
   /**
@@ -95,10 +174,27 @@ public class AiClientService {
    */
   @SuppressWarnings("unchecked")
   public List<Map<String, Object>> anomalies(List<TxnPayload> txns) {
+    return anomalies(txns, null);
+  }
+
+  /**
+   * Call AI /anomalies endpoint to detect unusual transactions with ignore list support.
+   *
+   * <p>Sprint-1 Enhancement: Supports ignoring specific transaction IDs (snooze/confirm).
+   *
+   * @param txns List of transaction payloads
+   * @param ignoreIds List of transaction IDs to ignore (optional)
+   * @return List of maps with keys: date, amount, category, score, isAnomaly
+   */
+  @SuppressWarnings("unchecked")
+  public List<Map<String, Object>> anomalies(List<TxnPayload> txns, List<String> ignoreIds) {
     try {
       String url = aiBaseUrl + "/anomalies";
       Map<String, Object> requestBody = new HashMap<>();
       requestBody.put("transactions", txns);
+      if (ignoreIds != null && !ignoreIds.isEmpty()) {
+        requestBody.put("ignoreIds", ignoreIds);
+      }
 
       HttpHeaders headers = new HttpHeaders();
       headers.setContentType(MediaType.APPLICATION_JSON);
@@ -114,6 +210,41 @@ public class AiClientService {
       }
     } catch (RestClientException e) {
       log.error("Failed to call AI anomalies endpoint", e);
+      throw new AiServiceException("AI service unavailable", e);
+    }
+  }
+
+  /**
+   * Call AI /merchant-insights endpoint to aggregate spending by merchant.
+   *
+   * <p>Sprint-1 Enhancement: Provides merchant normalization and monthly aggregation.
+   *
+   * @param txns List of transaction payloads
+   * @param monthsBack Number of months to look back (default: 3)
+   * @return List of maps with keys: merchant, monthlyTotals, totalSpending
+   */
+  @SuppressWarnings("unchecked")
+  public List<Map<String, Object>> merchantInsights(List<TxnPayload> txns, int monthsBack) {
+    try {
+      String url = aiBaseUrl + "/merchant-insights";
+      Map<String, Object> requestBody = new HashMap<>();
+      requestBody.put("transactions", txns);
+      requestBody.put("monthsBack", monthsBack);
+
+      HttpHeaders headers = new HttpHeaders();
+      headers.setContentType(MediaType.APPLICATION_JSON);
+      HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
+
+      ResponseEntity<Map> response = restTemplate.postForEntity(url, request, Map.class);
+
+      if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+        return (List<Map<String, Object>>) response.getBody().get("merchants");
+      } else {
+        throw new AiServiceException(
+            "AI service returned non-2xx status: " + response.getStatusCode());
+      }
+    } catch (RestClientException e) {
+      log.error("Failed to call AI merchant-insights endpoint", e);
       throw new AiServiceException("AI service unavailable", e);
     }
   }

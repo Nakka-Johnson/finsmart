@@ -1,0 +1,11 @@
+date,amount,direction,description,merchant,category
+2025-11-01,45.50,DEBIT,Weekly grocery shopping,Tesco,
+2025-11-02,2850.00,CREDIT,Monthly salary payment,ABC Corp,
+03/11/2025,12.99,OUT,Netflix subscription,Netflix,
+2025-11-04,£125.00,DEBIT,Electricity bill,British Gas,
+05-11-2025,89.99,DEBIT,New running shoes,Nike Store,
+2025/11/06,$15.50,OUT,Lunch at cafe,Starbucks,
+2025-11-07,250.00,DEBIT,Car insurance payment,Aviva,
+08/11/2025,3.99,DEBIT,Mobile app purchase,App Store,
+2025-11-09,1200.00,CREDIT,Freelance project payment,Client XYZ,
+2025-11-10,67.45,OUT,Dinner with friends,Pizza Express,

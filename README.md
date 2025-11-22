@@ -25,15 +25,28 @@ finsmart/
 
 See `.tool-versions.txt` for verified versions.
 
-## Quick Start (4 Terminals)
+## Quick Start
 
-### Terminal 1: PostgreSQL
+### Option 1: Automated Start (Recommended)
+```powershell
+# Start all services in correct order
+.\scripts\run_all.ps1
+
+# Skip AI service if not needed
+.\scripts\run_all.ps1 -SkipAI
+```
+
+This will launch AI → Backend → Frontend in separate PowerShell windows with health checks.
+
+### Option 2: Manual Start (4 Terminals)
+
+**Terminal 1: PostgreSQL**
 ```powershell
 # Start PostgreSQL (if not already running as service)
 # Ensure database 'finsmartdb' exists with user 'finsmart'
 ```
 
-### Terminal 2: AI Service
+**Terminal 2: AI Service**
 ```powershell
 cd ai
 python -m venv .venv
@@ -42,14 +55,14 @@ pip install -r requirements.txt
 uvicorn main:app --reload --port 8001
 ```
 
-### Terminal 3: Backend
+**Terminal 3: Backend**
 ```powershell
 cd backend
 .\mvnw.cmd spring-boot:run
 # Runs on http://localhost:8081
 ```
 
-### Terminal 4: Frontend
+**Terminal 4: Frontend**
 ```powershell
 cd frontend
 npm install
@@ -212,11 +225,86 @@ cd backend
 .\scripts\phase3_smoke.ps1
 ```
 
-## Environment Variables
+## Sprint-1 Feature Flags & Scripts
+
+### Feature Flags
+
+Configure in `.env.example` (root) and `frontend/.env.development.sample`:
+
+| Flag | Backend | Frontend | Default | Description |
+|------|---------|----------|---------|-------------|
+| DEMO | `APP_FEATURE_DEMO` | `VITE_FEATURE_DEMO` | `true` | Enable demo data seeding |
+| CSV Import V2 | `APP_FEATURE_CSV_IMPORT_V2` | `VITE_FEATURE_CSV_IMPORT_V2` | `true` | Enhanced CSV import with validation |
+| Budget Rollover | `APP_FEATURE_BUDGET_ROLLOVER` | `VITE_FEATURE_BUDGET_ROLLOVER` | `true` | Roll over unused budget to next month |
+| Envelope Budgeting | `APP_FEATURE_ENVELOPE` | `VITE_FEATURE_ENVELOPE` | `true` | Envelope-based budget allocation |
+| Insights V2 | `APP_FEATURE_INSIGHTS_V2` | `VITE_FEATURE_INSIGHTS_V2` | `true` | AI-powered spending insights |
+| PWA | `APP_FEATURE_PWA` | `VITE_FEATURE_PWA` | `true` | Progressive Web App support |
+| Export Centre | `APP_FEATURE_EXPORT_CENTRE` | `VITE_FEATURE_EXPORT_CENTRE` | `true` | Multi-format data export |
+| Open Banking (Read-Only) | `APP_FEATURE_OB_OB_READONLY` | `VITE_FEATURE_OB_OB_READONLY` | `false` | Open Banking integration (disabled for Sprint-1) |
+
+**Open Banking Provider:**
+- Backend: `APP_OB_PROVIDER=stub` (values: `stub`, `truelayer`)
+- Frontend: `VITE_OB_PROVIDER=stub`
+
+### Demo Data Scripts
+
+**Seed demo data:**
+```powershell
+# Requires admin bearer token
+.\scripts\demo_seed.ps1 -Token "your-admin-token"
+
+# Custom backend URL
+.\scripts\demo_seed.ps1 -Token "your-token" -BackendUrl "http://localhost:8081"
+```
+
+**Clear demo data:**
+```powershell
+# Interactive confirmation
+.\scripts\demo_clear.ps1 -Token "your-admin-token"
+
+# Force delete without confirmation
+.\scripts\demo_clear.ps1 -Token "your-token" -Force
+```
+
+**Demo credentials:**
+- Email: `demo@finsmart.com`
+- Password: `Demo1234!`
+
+### Run All Services
+
+**Start AI → Backend → Frontend:**
+```powershell
+.\scripts\run_all.ps1
+```
+
+**Skip AI service:**
+```powershell
+.\scripts\run_all.ps1 -SkipAI
+```
+
+**Skip Frontend (API development only):**
+```powershell
+.\scripts\run_all.ps1 -SkipFrontend
+```
+
+Services will start in separate PowerShell windows with automatic health checks.
+
+### Environment Variables
 
 Copy `.env.example` to `.env` and configure:
 
 ```env
+# Feature Flags (Sprint-1)
+APP_FEATURE_DEMO=true
+APP_FEATURE_CSV_IMPORT_V2=true
+APP_FEATURE_BUDGET_ROLLOVER=true
+APP_FEATURE_ENVELOPE=true
+APP_FEATURE_INSIGHTS_V2=true
+APP_FEATURE_PWA=true
+APP_FEATURE_EXPORT_CENTRE=true
+APP_FEATURE_OB_OB_READONLY=false
+APP_OB_PROVIDER=stub
+
 # Backend
 APP_JWT_SECRET=your-secret-key-here
 DB_URL=jdbc:postgresql://127.0.0.1:5432/finsmartdb
@@ -226,6 +314,27 @@ DB_PASSWORD=your-password
 # Services
 AI_URL=http://127.0.0.1:8001
 FRONTEND_URL=http://localhost:5173
+```
+
+**Frontend environment** (`frontend/.env.development`):
+
+```env
+# API Endpoints
+VITE_API_BASE=http://localhost:8081
+VITE_AI_URL=http://127.0.0.1:8001
+
+# Feature Flags (mirrors backend)
+VITE_FEATURE_DEMO=true
+VITE_FEATURE_CSV_IMPORT_V2=true
+VITE_FEATURE_BUDGET_ROLLOVER=true
+VITE_FEATURE_ENVELOPE=true
+VITE_FEATURE_INSIGHTS_V2=true
+VITE_FEATURE_PWA=true
+VITE_FEATURE_EXPORT_CENTRE=true
+VITE_FEATURE_OB_OB_READONLY=false
+
+# Open Banking
+VITE_OB_PROVIDER=stub
 ```
 
 ## Architecture

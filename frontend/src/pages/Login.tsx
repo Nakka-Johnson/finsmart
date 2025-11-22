@@ -1,30 +1,43 @@
 import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { authApi } from '@/api/endpoints';
 import { useAuthStore } from '@/store/auth';
-import { useToast } from '@/hooks/useToast';
+import { useToastStore } from '@/store/toast';
 import { HttpError } from '@/api/http';
+import '../styles/Auth.css';
 
 export function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const { setAuth } = useAuthStore();
   const navigate = useNavigate();
-  const { showToast } = useToast();
+  const showToast = useToastStore(state => state.showToast);
 
   const validate = () => {
     const newErrors: { email?: string; password?: string } = {};
-    if (!email) newErrors.email = 'Email is required';
-    if (email && !/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Invalid email format';
-    if (!password) newErrors.password = 'Password is required';
+
+    if (!email) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = 'Invalid email format';
+    }
+
+    if (!password) {
+      newErrors.password = 'Password is required';
+    } else if (password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+
     if (!validate()) return;
 
     setLoading(true);
@@ -33,7 +46,7 @@ export function Login() {
     try {
       const authResponse = await authApi.login({ email, password });
       const user = await authApi.me(authResponse.token);
-      setAuth(authResponse.token, user);
+      setAuth(authResponse.token, user, rememberMe);
       showToast('Login successful!', 'success');
       navigate('/dashboard');
     } catch (error) {
@@ -48,11 +61,14 @@ export function Login() {
   };
 
   return (
-    <div className="login-page">
-      <div className="login-card">
-        <h1 className="login-title">FinSmart</h1>
-        <p className="login-subtitle">Sign in to your account</p>
-        <form onSubmit={handleSubmit}>
+    <div className="auth-page">
+      <div className="auth-card">
+        <div className="auth-header">
+          <h1 className="auth-title">FinSmart</h1>
+          <p className="auth-subtitle">Sign in to your account</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input
@@ -63,8 +79,10 @@ export function Login() {
               className={errors.email ? 'error' : ''}
               placeholder="you@example.com"
               disabled={loading}
+              autoComplete="email"
+              autoFocus
             />
-            {errors.email && <div className="error-message">{errors.email}</div>}
+            {errors.email && <span className="error-message">{errors.email}</span>}
           </div>
 
           <div className="form-group">
@@ -77,19 +95,38 @@ export function Login() {
               className={errors.password ? 'error' : ''}
               placeholder="••••••••"
               disabled={loading}
+              autoComplete="current-password"
             />
-            {errors.password && <div className="error-message">{errors.password}</div>}
+            {errors.password && <span className="error-message">{errors.password}</span>}
+          </div>
+
+          <div className="form-group-checkbox">
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={e => setRememberMe(e.target.checked)}
+                disabled={loading}
+              />
+              <span>Remember me</span>
+            </label>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="btn btn-primary"
+            className="btn-primary btn-large"
             style={{ width: '100%' }}
           >
             {loading ? 'Logging in...' : 'Login'}
           </button>
         </form>
+
+        <div className="auth-footer">
+          <p>
+            Don't have an account? <Link to="/register">Create account</Link>
+          </p>
+        </div>
       </div>
     </div>
   );

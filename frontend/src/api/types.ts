@@ -82,6 +82,41 @@ export interface PageResponse<T> {
   number: number;
 }
 
+// CSV Import types
+export interface ImportPreviewRow {
+  rowNumber: number;
+  postedAt: string;
+  amount: number;
+  direction: string;
+  description: string | null;
+  merchant: string | null;
+  originalCategory: string | null;
+  suggestedCategory: string | null;
+  categorizationReason: string | null;
+}
+
+export interface ImportPreviewError {
+  rowNumber: number;
+  message: string;
+}
+
+export interface ImportPreviewResponse {
+  totalRows: number;
+  validRows: number;
+  invalidRows: number;
+  rows: ImportPreviewRow[];
+  errors: ImportPreviewError[];
+}
+
+export interface ImportSuccessResponse {
+  insertedCount: number;
+}
+
+export interface BulkActionResponse {
+  affectedCount: number;
+  message: string;
+}
+
 // Budget types
 export interface BudgetResponse {
   id: string;

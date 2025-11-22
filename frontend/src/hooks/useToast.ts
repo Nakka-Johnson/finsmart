@@ -1,21 +1,10 @@
-import { useState, useCallback } from 'react';
+import { useToastStore } from '@/store/toast';
 
-interface ToastState {
-  message: string;
-  type: 'success' | 'error' | 'info';
-  id: number;
+// Re-export from store for backwards compatibility
+export { useToastStore as useToast };
+
+// Simpler hook version for convenience
+export function useSimpleToast() {
+  const showToast = useToastStore(state => state.showToast);
+  return { showToast };
 }
-
-export const useToast = () => {
-  const [toast, setToast] = useState<ToastState | null>(null);
-
-  const showToast = useCallback((message: string, type: 'success' | 'error' | 'info' = 'info') => {
-    setToast({ message, type, id: Date.now() });
-  }, []);
-
-  const hideToast = useCallback(() => {
-    setToast(null);
-  }, []);
-
-  return { toast, showToast, hideToast };
-};

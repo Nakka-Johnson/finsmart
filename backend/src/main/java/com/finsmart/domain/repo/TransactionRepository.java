@@ -4,6 +4,7 @@ import com.finsmart.domain.entity.Transaction;
 import com.finsmart.domain.enums.TransactionDirection;
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
@@ -66,4 +67,23 @@ public interface TransactionRepository
       @Param("direction") TransactionDirection direction,
       @Param("startDate") Instant startDate,
       @Param("endDate") Instant endDate);
+
+  // Duplicate detection by hash
+  Optional<Transaction> findByHash(String hash);
+
+  boolean existsByHash(String hash);
+
+  // Delete operations
+  int deleteByAccountUserId(UUID userId);
+
+  // Sprint-1: Find transactions for insights and anomaly detection
+  @Query(
+      """
+      SELECT t FROM Transaction t
+      WHERE t.account.user.id = :userId
+        AND t.postedAt >= :cutoffDate
+      ORDER BY t.postedAt DESC
+      """)
+  List<Transaction> findByUserIdAndPostedAtAfter(
+      @Param("userId") UUID userId, @Param("cutoffDate") Instant cutoffDate);
 }

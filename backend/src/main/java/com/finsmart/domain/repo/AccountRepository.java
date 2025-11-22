@@ -15,4 +15,7 @@ public interface AccountRepository extends JpaRepository<Account, UUID> {
   List<Account> findByUserId(UUID userId, Sort sort);
 
   boolean existsByUserIdAndName(UUID userId, String name);
+
+  // Delete operations
+  int deleteByUserId(UUID userId);
 }

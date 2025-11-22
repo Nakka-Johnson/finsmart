@@ -19,4 +19,7 @@ public interface BudgetRepository extends JpaRepository<Budget, UUID> {
 
   boolean existsByUserIdAndCategoryIdAndMonthAndYear(
       UUID userId, UUID categoryId, int month, int year);
+
+  // Delete operations
+  int deleteByUserId(UUID userId);
 }

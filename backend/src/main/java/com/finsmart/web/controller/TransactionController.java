@@ -3,6 +3,8 @@ package com.finsmart.web.controller;
 import com.finsmart.domain.enums.TransactionDirection;
 import com.finsmart.service.TransactionService;
 import com.finsmart.web.dto.PageResponse;
+import com.finsmart.web.dto.transaction.BulkActionRequest;
+import com.finsmart.web.dto.transaction.BulkActionResponse;
 import com.finsmart.web.dto.transaction.TransactionRequest;
 import com.finsmart.web.dto.transaction.TransactionResponse;
 import com.finsmart.web.mapper.TransactionMapper;
@@ -16,6 +18,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -115,5 +118,47 @@ public class TransactionController {
     UUID userId = authHelper.getCurrentUserId();
     log.debug("Deleting transaction {} for user: {}", id, userId);
     transactionService.deleteTransaction(userId, id);
+  }
+
+  // NOTE: CSV import functionality has been moved to ImportController
+  // with enhanced features (batch management, undo capability, etc.)
+
+  /**
+   * Bulk transaction operations (DELETE or RECATEGORISE).
+   *
+   * @param request BulkActionRequest containing action, ids, and optional categoryId
+   * @return BulkActionResponse with affected count
+   */
+  @PostMapping("/bulk")
+  public ResponseEntity<BulkActionResponse> bulkAction(
+      @Valid @RequestBody BulkActionRequest request) {
+    UUID userId = authHelper.getCurrentUserId();
+    log.info(
+        "Bulk action {} for user: {}, {} transactions",
+        request.action(),
+        userId,
+        request.ids().size());
+
+    int affectedCount;
+    String message;
+
+    switch (request.action()) {
+      case DELETE -> {
+        affectedCount = transactionService.bulkDelete(userId, request.ids());
+        message = "Deleted " + affectedCount + " transaction(s)";
+      }
+      case RECATEGORISE -> {
+        if (request.categoryId() == null && request.ids().size() > 0) {
+          return ResponseEntity.badRequest()
+              .body(new BulkActionResponse(0, "categoryId is required for RECATEGORISE action"));
+        }
+        affectedCount =
+            transactionService.bulkRecategorise(userId, request.ids(), request.categoryId());
+        message = "Recategorized " + affectedCount + " transaction(s)";
+      }
+      default -> throw new IllegalArgumentException("Unsupported bulk action: " + request.action());
+    }
+
+    return ResponseEntity.ok(new BulkActionResponse(affectedCount, message));
   }
 }

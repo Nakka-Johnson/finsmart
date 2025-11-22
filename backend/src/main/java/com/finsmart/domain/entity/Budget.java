@@ -54,4 +54,12 @@ public class Budget {
   @DecimalMin(value = "0.00", inclusive = true)
   @Column(nullable = false, precision = 12, scale = 2)
   private BigDecimal limitAmount;
+
+  @Column(nullable = false)
+  @Builder.Default
+  private Boolean rollover = false;
+
+  @Column(name = "carry_in", nullable = false, precision = 14, scale = 2)
+  @Builder.Default
+  private BigDecimal carryIn = BigDecimal.ZERO;
 }

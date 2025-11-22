@@ -1,0 +1,13 @@
+date,amount,direction,description,merchant,category
+2025-11-01,45.50,DEBIT,Weekly grocery shopping,Tesco,
+2025-11-02,35.00,DEBIT,Grocery delivery,ASDA,
+2025-11-03,28.99,DEBIT,Food shopping,Sainsbury,
+2025-11-04,15.50,DEBIT,Uber ride to work,Uber,
+2025-11-05,8.50,DEBIT,Taxi to station,Bolt,
+2025-11-06,125.00,DEBIT,Electricity bill,British Gas,
+2025-11-07,89.00,DEBIT,Water bill,United Utilities,
+2025-11-08,12.99,DEBIT,Streaming service,Netflix,
+2025-11-09,9.99,DEBIT,Music subscription,Spotify,
+2025-11-10,850.00,DEBIT,Monthly rent payment,Landlord,
+2025-11-11,75.00,DEBIT,Restaurant dinner,Nando's,
+2025-11-12,45.00,DEBIT,Shopping,Amazon,

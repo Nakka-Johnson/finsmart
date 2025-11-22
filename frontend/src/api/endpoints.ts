@@ -78,6 +78,47 @@ export const transactionApi = {
     http.put<TransactionResponse>(`/api/transactions/${id}`, data, token),
 
   delete: (id: string, token: string) => http.delete(`/api/transactions/${id}`, token),
+
+  importCsv: async (params: {
+    file: File;
+    accountId?: string;
+    preview: boolean;
+    token: string;
+  }) => {
+    const { file, accountId, preview, token } = params;
+    const apiBase = import.meta.env.VITE_API_BASE || 'http://localhost:8081';
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const query = new URLSearchParams({
+      preview: preview.toString(),
+      ...(accountId && { accountId }),
+    });
+
+    const response = await fetch(`${apiBase}/api/transactions/import?${query}`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Import failed');
+    }
+
+    return response.json();
+  },
+
+  bulkAction: (
+    data: {
+      action: 'DELETE' | 'RECATEGORISE';
+      ids: string[];
+      categoryId?: string;
+    },
+    token: string
+  ) => http.post('/api/transactions/bulk', data, token),
 };
 
 // ========== Budgets ==========

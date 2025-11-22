@@ -55,6 +55,9 @@ public class Transaction {
   @Column(length = 512)
   private String notes;
 
+  @Column(length = 64)
+  private String hash;
+
   @Column(nullable = false, updatable = false)
   private Instant createdAt;
 
