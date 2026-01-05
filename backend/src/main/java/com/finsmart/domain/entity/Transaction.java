@@ -52,6 +52,19 @@ public class Transaction {
   @Column(length = 255)
   private String merchant;
 
+  // AI-enhanced fields
+  @Column(length = 255)
+  private String normalizedMerchant;
+
+  @Column(precision = 5, scale = 4)
+  private Double merchantConfidence;
+
+  @Column(precision = 5, scale = 4)
+  private Double categoryConfidence;
+
+  @Column(precision = 5, scale = 4)
+  private Double anomalyScore;
+
   @Column(length = 512)
   private String notes;
 

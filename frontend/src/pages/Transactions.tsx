@@ -438,9 +438,28 @@ export function Transactions() {
         {loading ? (
           <Loader size="medium" />
         ) : transactions.length === 0 ? (
-          <p style={{ textAlign: 'center', color: '#666', padding: '2rem' }}>
-            No transactions found
-          </p>
+          <div style={{ 
+            textAlign: 'center', 
+            padding: '3rem 2rem',
+            color: '#666',
+          }}>
+            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📋</div>
+            <h3 style={{ margin: '0 0 0.5rem', color: '#374151' }}>No transactions found</h3>
+            <p style={{ margin: '0 0 1.5rem', maxWidth: '400px', marginInline: 'auto' }}>
+              {accounts.length === 0 
+                ? 'Create an account first, then import your transactions.'
+                : 'Import a CSV file or add transactions manually to get started.'
+              }
+            </p>
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+              <button onClick={handleImportClick} className="btn btn-primary" disabled={accounts.length === 0}>
+                📁 Import CSV
+              </button>
+              <button onClick={handleAddClick} className="btn btn-secondary" disabled={accounts.length === 0}>
+                ➕ Add Manually
+              </button>
+            </div>
+          </div>
         ) : (
           <>
             <table className="data-table">

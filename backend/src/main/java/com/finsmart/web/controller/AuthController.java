@@ -1,13 +1,16 @@
 package com.finsmart.web.controller;
 
 import com.finsmart.domain.entity.User;
+import com.finsmart.domain.enums.AccountType;
 import com.finsmart.domain.repo.UserRepository;
 import com.finsmart.security.JwtUtil;
+import com.finsmart.service.AccountService;
 import com.finsmart.web.dto.auth.AuthResponse;
 import com.finsmart.web.dto.auth.LoginRequest;
 import com.finsmart.web.dto.auth.RegisterRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -19,6 +22,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+@Slf4j
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
@@ -28,6 +32,7 @@ public class AuthController {
   private final PasswordEncoder passwordEncoder;
   private final JwtUtil jwtUtil;
   private final AuthenticationManager authenticationManager;
+  private final AccountService accountService;
 
   @PostMapping("/register")
   public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
@@ -45,6 +50,16 @@ public class AuthController {
             .build();
 
     user = userRepository.save(user);
+    log.info("New user registered: {} (id: {})", user.getEmail(), user.getId());
+
+    // Create default account for the new user
+    try {
+      accountService.createAccount(user.getId(), "Main Account", null, AccountType.CHECKING, "GBP");
+      log.info("Created default account for user: {}", user.getId());
+    } catch (Exception e) {
+      log.warn("Failed to create default account for user {}: {}", user.getId(), e.getMessage());
+      // Continue with registration even if default account creation fails
+    }
 
     // Generate JWT token
     String token = jwtUtil.createToken(user.getId(), user.getEmail());

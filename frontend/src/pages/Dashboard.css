@@ -1,0 +1,366 @@
+/**
+ * Dashboard Styles - Truthful UI
+ */
+
+.dashboard {
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.dashboard-health {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.status-chip {
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.status-up {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.status-down {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.status-checking {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.dashboard-controls {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  align-items: center;
+}
+
+.range-select {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--color-border, #e5e7eb);
+  background: var(--color-surface, #fff);
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.dashboard-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  color: var(--color-text-muted, #6b7280);
+}
+
+.dashboard-loading p {
+  margin-top: 1rem;
+}
+
+/* Stats cards */
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  padding: 1.25rem;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted, #6b7280);
+  margin-bottom: 0.5rem;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-value.balance {
+  color: var(--color-text, #111827);
+}
+
+.stat-value.income {
+  color: #059669;
+}
+
+.stat-value.spending {
+  color: #dc2626;
+}
+
+/* Narratives */
+.narratives-card {
+  margin-bottom: 1.5rem;
+}
+
+.narratives-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.narrative-item {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  font-size: 0.875rem;
+}
+
+.narrative-label {
+  font-weight: 600;
+  color: var(--color-text, #111827);
+}
+
+.narrative-note {
+  color: var(--color-text-muted, #6b7280);
+}
+
+/* Grid layout */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.chart-card {
+  min-height: 320px;
+}
+
+/* Merchants table */
+.merchants-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.merchants-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.merchants-table th {
+  text-align: left;
+  padding: 0.75rem 0.5rem;
+  font-weight: 600;
+  color: var(--color-text-muted, #6b7280);
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+}
+
+.merchants-table th:nth-child(2),
+.merchants-table th:nth-child(3) {
+  text-align: right;
+}
+
+.merchants-table td {
+  padding: 0.75rem 0.5rem;
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+}
+
+.merchants-table td.amount,
+.merchants-table td.count {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.merchants-table td.amount {
+  font-weight: 500;
+}
+
+.merchants-table td.count {
+  color: var(--color-text-muted, #6b7280);
+}
+
+.view-all-link {
+  margin-top: auto;
+  padding-top: 1rem;
+  font-size: 0.875rem;
+  color: var(--color-primary, #2563eb);
+  text-decoration: none;
+}
+
+.view-all-link:hover {
+  text-decoration: underline;
+}
+
+/* Anomalies */
+.anomalies-card {
+  margin-bottom: 1.5rem;
+}
+
+.anomalies-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.anomaly-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.75rem;
+  background: #fef2f2;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.anomaly-merchant {
+  font-weight: 500;
+}
+
+.anomaly-amount {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.anomaly-reason {
+  color: var(--color-text-muted, #6b7280);
+  font-size: 0.8125rem;
+}
+
+.anomaly-score {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.anomaly-score.score-high {
+  background: #dc2626;
+  color: white;
+}
+
+.anomaly-score.score-medium {
+  background: #f59e0b;
+  color: white;
+}
+
+.anomaly-score.score-low {
+  background: #9ca3af;
+  color: white;
+}
+
+/* Footer */
+.dashboard-footer {
+  text-align: center;
+  padding: 1rem;
+  color: var(--color-text-muted, #6b7280);
+  font-size: 0.8125rem;
+}
+
+/* Empty state */
+.dashboard-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  background: var(--color-surface, #fff);
+  border-radius: 12px;
+  border: 2px dashed var(--color-border, #e5e7eb);
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+}
+
+.dashboard-empty h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--color-text, #111827);
+}
+
+.dashboard-empty > p {
+  margin: 0 0 2rem;
+  color: var(--color-text-muted, #6b7280);
+  max-width: 400px;
+}
+
+.empty-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.empty-hint {
+  padding: 1rem;
+  background: var(--color-bg-subtle, #f9fafb);
+  border-radius: 8px;
+  max-width: 500px;
+}
+
+.empty-hint p {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--color-text-muted, #6b7280);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .dashboard {
+    padding: 1rem;
+  }
+
+  .dashboard-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .anomaly-item {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: auto auto;
+  }
+
+  .anomaly-reason {
+    grid-column: 1 / -1;
+  }
+}

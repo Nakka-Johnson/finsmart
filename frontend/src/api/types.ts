@@ -192,3 +192,60 @@ export interface MonthlyInsight {
   anomalies: Anomaly[];
   forecast: Forecast[];
 }
+
+// ========== Insights Summary types (dashboard) ==========
+
+export interface CategorySpend {
+  categoryId: string;
+  name: string;
+  color: string;
+  total: number;
+  transactionCount: number;
+}
+
+export interface TopMerchant {
+  merchantName: string;
+  total: number;
+  txCount: number;
+}
+
+export interface AnomalyPreview {
+  merchantName: string;
+  reason: string;
+  amount: number;
+  score: number;
+}
+
+export interface ChangeNarrative {
+  label: string;
+  delta: number;
+  note: string;
+}
+
+export type DateRange = 'LAST_30_DAYS' | 'LAST_6_MONTHS';
+
+export interface InsightsSummaryResponse {
+  currentBalance: number;
+  totalIncome: number;
+  totalSpending: number;
+  netFlow: number;
+  spendByCategory: CategorySpend[];
+  topMerchants: TopMerchant[];
+  anomaliesPreview: AnomalyPreview[];
+  changeNarrative: ChangeNarrative[];
+  transactionCount: number;
+  periodStart: string;
+  periodEnd: string;
+}
+
+// ========== Demo Data types ==========
+
+export interface DemoSeedResponse {
+  message: string;
+  usersCreated: number;
+  accountsCreated: number;
+  categoriesCreated: number;
+  transactionsCreated: number;
+  budgetsCreated: number;
+  rulesCreated: number;
+}

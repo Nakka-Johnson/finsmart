@@ -5,12 +5,15 @@ import com.finsmart.domain.entity.Transaction;
 import com.finsmart.domain.repo.AnomalyStatusRepository;
 import com.finsmart.domain.repo.TransactionRepository;
 import com.finsmart.service.InsightService;
+import com.finsmart.service.InsightsSummaryService;
+import com.finsmart.service.InsightsSummaryService.DateRange;
 import com.finsmart.service.ai.AiClientService;
 import com.finsmart.service.ai.TxnPayload;
 import com.finsmart.web.dto.AnomalyDTO;
 import com.finsmart.web.dto.MerchantInsightDTO;
 import com.finsmart.web.dto.MerchantInsightDTO.MonthlyTotal;
 import com.finsmart.web.dto.MonthlyInsightDTO;
+import com.finsmart.web.dto.insights.InsightsSummaryResponse;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import java.math.BigDecimal;
@@ -33,10 +36,36 @@ import org.springframework.web.bind.annotation.*;
 public class InsightsController {
 
   private final InsightService insightService;
+  private final InsightsSummaryService insightsSummaryService;
   private final AuthenticationHelper authenticationHelper;
   private final AiClientService aiClientService;
   private final TransactionRepository transactionRepository;
   private final AnomalyStatusRepository anomalyStatusRepository;
+
+  /**
+   * Get dashboard summary with all key metrics. All values are computed from actual transaction
+   * data in the database.
+   *
+   * @param range Date range: LAST_30_DAYS or LAST_6_MONTHS
+   * @return InsightsSummaryResponse with computed metrics
+   */
+  @GetMapping("/summary")
+  public ResponseEntity<InsightsSummaryResponse> getSummary(
+      @RequestParam(defaultValue = "LAST_30_DAYS") String range) {
+
+    UUID userId = authenticationHelper.getCurrentUserId();
+    log.info("Fetching insights summary for user {} with range {}", userId, range);
+
+    DateRange dateRange;
+    try {
+      dateRange = DateRange.valueOf(range);
+    } catch (IllegalArgumentException e) {
+      dateRange = DateRange.LAST_30_DAYS;
+    }
+
+    InsightsSummaryResponse summary = insightsSummaryService.buildSummary(userId, dateRange);
+    return ResponseEntity.ok(summary);
+  }
 
   /**
    * Get monthly insights for the current user.

@@ -6,6 +6,7 @@ import { Card } from '@/components/Card';
 import { Loader } from '@/components/Loader';
 import { useToast } from '@/hooks/useToast';
 import { HttpError } from '@/api/http';
+import { formatDate } from '@/utils/format';
 
 export function Categories() {
   const { token } = useAuthStore();
@@ -128,7 +129,7 @@ export function Categories() {
                       {c.type}
                     </span>
                   </td>
-                  <td>{new Date(c.createdAt).toLocaleDateString()}</td>
+                  <td>{formatDate(c.createdAt)}</td>
                   <td>
                     <button onClick={() => handleDelete(c.id)} className="btn btn-small btn-danger">
                       Delete

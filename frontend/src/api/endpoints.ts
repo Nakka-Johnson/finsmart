@@ -17,6 +17,9 @@ import type {
   InsightRequest,
   InsightResponse,
   MonthlyInsight,
+  InsightsSummaryResponse,
+  DateRange,
+  DemoSeedResponse,
 } from './types';
 
 // ========== Auth ==========
@@ -154,6 +157,32 @@ export const insightApi = {
     });
     return http.get<MonthlyInsight>(`/api/insights/monthly?${query}`, token);
   },
+
+  /**
+   * Get dashboard summary with all key metrics.
+   * All values are computed from actual transaction data.
+   */
+  summary: (range: DateRange = 'LAST_30_DAYS', token: string) => {
+    const query = new URLSearchParams({ range });
+    return http.get<InsightsSummaryResponse>(`/api/insights/summary?${query}`, token);
+  },
+};
+
+// ========== Demo Data ==========
+export const demoApi = {
+  /**
+   * Seed UK demo data for the current user.
+   * Creates accounts, categories, and 12 months of UK-style transactions.
+   */
+  seedUk: (token: string) =>
+    http.post<DemoSeedResponse>('/api/admin/demo/uk/seed', {}, token),
+
+  /**
+   * Clear demo data for the current user.
+   * Only removes data marked as demo, preserves user-created data.
+   */
+  clearUk: (token: string) =>
+    http.post<DemoSeedResponse>('/api/admin/demo/uk/clear', {}, token),
 };
 
 // ========== Reports ==========

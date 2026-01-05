@@ -8,7 +8,7 @@
  * - Preview before import
  */
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { FeatureGate } from '@/components/FeatureGate';
 import { useAuthStore } from '@/store/auth';
 import { useToastStore } from '@/store/toast';
@@ -81,9 +81,9 @@ export function CSVImportPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load accounts on mount
-  useState(() => {
+  useEffect(() => {
     loadAccounts();
-  });
+  }, []);
 
   async function loadAccounts() {
     try {

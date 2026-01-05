@@ -133,6 +133,40 @@
 }
 
 /* ============================================================================
+ * Empty State
+ * ========================================================================= */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 2rem;
+  text-align: center;
+  background: #F9FAFB;
+  border-radius: 0.75rem;
+  border: 2px dashed #E5E7EB;
+}
+
+.empty-state .empty-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.empty-state p {
+  margin: 0;
+  color: #6B7280;
+  max-width: 300px;
+}
+
+/* ============================================================================
  * Merchants Tab
  * ========================================================================= */
 

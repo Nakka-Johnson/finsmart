@@ -207,6 +207,21 @@ function MerchantsTab({ merchants }: MerchantsTabProps) {
   // Top 10 for chart
   const top10 = sortedMerchants.slice(0, 10);
 
+  // Empty state
+  if (merchants.length === 0) {
+    return (
+      <div className="empty-state">
+        <div className="empty-icon">📊</div>
+        <h3>No merchant data yet</h3>
+        <p>Import transactions to see your spending breakdown by merchant.</p>
+      </div>
+    );
+  }
+
+  // GBP formatter
+  const formatGBP = (value: number) => 
+    new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(value);
+
   return (
     <div className="merchants-tab">
       {/* Top Merchants Chart */}
@@ -216,8 +231,8 @@ function MerchantsTab({ merchants }: MerchantsTabProps) {
           <BarChart data={top10}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="merchant" angle={-45} textAnchor="end" height={100} />
-            <YAxis />
-            <Tooltip formatter={(value) => `$${Number(value).toFixed(2)}`} />
+            <YAxis tickFormatter={(v) => formatGBP(v)} />
+            <Tooltip formatter={(value) => formatGBP(Number(value))} />
             <Legend />
             <Bar dataKey="totalSpent" fill="#4F46E5" name="Total Spent" />
           </BarChart>
@@ -247,9 +262,9 @@ function MerchantsTab({ merchants }: MerchantsTabProps) {
                   <td>
                     <span className="category-badge">{merchant.category}</span>
                   </td>
-                  <td className="amount">${merchant.totalSpent.toFixed(2)}</td>
+                  <td className="amount">{formatGBP(merchant.totalSpent)}</td>
                   <td>{merchant.transactionCount}</td>
-                  <td className="amount">${merchant.avgAmount.toFixed(2)}</td>
+                  <td className="amount">{formatGBP(merchant.avgAmount)}</td>
                   <td>
                     <span className={`trend trend-${merchant.trend}`}>
                       {merchant.trend === 'increasing' && '📈'}

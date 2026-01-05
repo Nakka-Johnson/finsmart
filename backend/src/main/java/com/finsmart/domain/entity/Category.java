@@ -1,6 +1,7 @@
 package com.finsmart.domain.entity;
 
 import jakarta.persistence.*;
+import java.time.Instant;
 import java.util.UUID;
 import lombok.*;
 
@@ -24,4 +25,14 @@ public class Category {
 
   @Column(nullable = false, length = 7)
   private String color; // #RRGGBB format
+
+  @Column(nullable = false, updatable = false)
+  private Instant createdAt;
+
+  @PrePersist
+  protected void onCreate() {
+    if (createdAt == null) {
+      createdAt = Instant.now();
+    }
+  }
 }
