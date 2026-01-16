@@ -482,11 +482,11 @@ FinSmart accepts CSV files with the following structure:
 |--------|--------|-------------|---------|
 | `date` | YYYY-MM-DD | Transaction date | `2025-01-15` |
 | `amount` | Decimal | Transaction amount (positive) | `45.50` |
-| `direction` | IN/OUT | Money direction (IN=income, OUT=expense) | `OUT` |
+| `direction` | DEBIT/CREDIT | Money direction (DEBIT=expense, CREDIT=income) | `DEBIT` |
 | `description` | Text | Transaction description | `Grocery shopping` |
 | `account_name` | Text | Account name (must exist) | `Main Checking` |
 
-**Note on Direction Values**: Use `IN` or `OUT` in CSV files. The API internally uses `CREDIT`/`DEBIT` but accepts `IN`/`OUT` for convenience.
+**Note on Direction Values**: Use `DEBIT` for expenses and `CREDIT` for income in CSV files. This matches the backend API. The frontend UI may display these as "OUT" and "IN" for simplicity.
 
 #### Optional Columns
 
@@ -500,11 +500,11 @@ FinSmart accepts CSV files with the following structure:
 
 ```csv
 date,amount,direction,description,account_name,category_name,merchant,notes
-2025-01-15,45.50,OUT,Grocery shopping,Main Checking,Groceries,Tesco,Weekly shopping
-2025-01-16,75.00,OUT,Gas station,Main Checking,Transportation,Shell,Filled up tank
-2025-01-17,3000.00,IN,Monthly salary,Main Checking,Salary,Employer,January payment
-2025-01-18,12.99,OUT,Coffee,Credit Card,Dining Out,Starbucks,
-2025-01-20,150.00,OUT,Electric bill,Main Checking,Utilities,British Gas,Monthly payment
+2025-01-15,45.50,DEBIT,Grocery shopping,Main Checking,Groceries,Tesco,Weekly shopping
+2025-01-16,75.00,DEBIT,Gas station,Main Checking,Transportation,Shell,Filled up tank
+2025-01-17,3000.00,CREDIT,Monthly salary,Main Checking,Salary,Employer,January payment
+2025-01-18,12.99,DEBIT,Coffee,Credit Card,Dining Out,Starbucks,
+2025-01-20,150.00,DEBIT,Electric bill,Main Checking,Utilities,British Gas,Monthly payment
 ```
 
 ### CSV Format Rules
@@ -518,7 +518,10 @@ date,amount,direction,description,account_name,category_name,merchant,notes
    - Decimal number with up to 2 decimal places
    - Use period (`.`) as decimal separator
    - No currency symbols or commas
-7. **Direction Values**: Exactly `IN` or `OUT` (case-sensitive)
+6. **Direction Format**: 
+   - Use `DEBIT` for expenses (money going out)
+   - Use `CREDIT` for income (money coming in)
+   - Exactly `DEBIT` or `CREDIT` (case-sensitive)
 8. **Empty Fields**: Optional fields can be empty but must have column
 
 ### Preparing Your CSV File
@@ -548,8 +551,8 @@ Many banks provide CSV exports. You may need to:
 |-------------|-----------------|----------------|
 | Transaction Date | date | Reformat to YYYY-MM-DD |
 | Description | description | Direct copy |
-| Debit | amount + direction | Amount → amount, "DR" → OUT |
-| Credit | amount + direction | Amount → amount, "CR" → IN |
+| Debit | amount + direction | Amount → amount, "DR" → DEBIT |
+| Credit | amount + direction | Amount → amount, "CR" → CREDIT |
 | Balance | (ignore) | Not needed |
 
 ### Importing CSV Files
@@ -569,7 +572,7 @@ curl -X POST http://localhost:8081/api/transactions \
     "accountId": "account-uuid-here",
     "postedAt": "2025-01-15T00:00:00Z",
     "amount": 45.50,
-    "direction": "OUT",
+    "direction": "DEBIT",
     "description": "Grocery shopping",
     "categoryId": "category-uuid-here",
     "merchant": "Tesco",
@@ -616,7 +619,7 @@ For smaller datasets, manually create transactions:
 | Invalid date format | Date not in YYYY-MM-DD | Reformat dates in Excel: `=TEXT(A2,"YYYY-MM-DD")` |
 | Account not found | account_name doesn't exist | Create account first or fix name spelling |
 | Category not found | category_name doesn't exist | Create category first or remove category column |
-| Invalid direction | Not "IN" or "OUT" | Change to exactly `IN` or `OUT` (case-sensitive) |
+| Invalid direction | Not "DEBIT" or "CREDIT" | Change to exactly `DEBIT` or `CREDIT` (case-sensitive) |
 | Invalid amount | Negative or non-numeric | Ensure positive number with max 2 decimals |
 | Missing required field | Empty date, amount, etc. | Fill in all required columns |
 

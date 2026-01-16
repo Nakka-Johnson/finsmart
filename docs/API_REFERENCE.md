@@ -115,7 +115,8 @@ components:
           minimum: 0
         direction:
           type: string
-          enum: [IN, OUT]
+          enum: [DEBIT, CREDIT]
+          description: DEBIT for expenses, CREDIT for income
         description:
           type: string
           maxLength: 512
@@ -507,7 +508,7 @@ Authorization: Bearer <token>
 - `sort`: Sort field and direction (default: `postedAt,desc`)
 - `accountId`: Filter by account UUID (optional)
 - `categoryId`: Filter by category UUID (optional)
-- `direction`: Filter by direction: `IN`, `OUT` (optional)
+- `direction`: Filter by direction: `DEBIT`, `CREDIT` (optional)
 - `dateFrom`: Filter from date (ISO format, optional)
 - `dateTo`: Filter to date (ISO format, optional)
 - `minAmount`: Minimum amount filter (optional)
@@ -523,7 +524,7 @@ Authorization: Bearer <token>
       "accountId": "a1e8400-e29b-41d4-a716-446655440001",
       "postedAt": "2025-01-15T14:30:00Z",
       "amount": 45.50,
-      "direction": "OUT",
+      "direction": "DEBIT",
       "description": "Grocery shopping",
       "categoryId": "c1e8400-e29b-41d4-a716-446655440001",
       "categoryName": "Groceries",
@@ -553,7 +554,7 @@ Content-Type: application/json
   "accountId": "a1e8400-e29b-41d4-a716-446655440001",
   "postedAt": "2025-01-16T10:00:00Z",
   "amount": 75.00,
-  "direction": "OUT",
+  "direction": "DEBIT",
   "description": "Gas station",
   "categoryId": "c2e8400-e29b-41d4-a716-446655440002",
   "merchant": "Shell",
@@ -565,11 +566,13 @@ Content-Type: application/json
 - `accountId`: Required, valid UUID, must belong to user
 - `postedAt`: Required, ISO 8601 datetime
 - `amount`: Required, >= 0, max 2 decimal places
-- `direction`: Required, one of: `IN` (credit), `OUT` (debit)
+- `direction`: Required, one of: `DEBIT` (money out/expense), `CREDIT` (money in/income)
 - `description`: Optional, max 512 characters
 - `categoryId`: Optional, valid UUID
 - `merchant`: Optional, max 255 characters
 - `notes`: Optional, max 512 characters
+
+**Note on Direction Values**: The API uses `DEBIT` (for expenses/money out) and `CREDIT` (for income/money in). The frontend may display these as "OUT" and "IN" for user convenience.
 
 **Response (201 Created):**
 ```json
@@ -578,7 +581,7 @@ Content-Type: application/json
   "accountId": "a1e8400-e29b-41d4-a716-446655440001",
   "postedAt": "2025-01-16T10:00:00Z",
   "amount": 75.00,
-  "direction": "OUT",
+  "direction": "DEBIT",
   "description": "Gas station",
   "categoryId": "c2e8400-e29b-41d4-a716-446655440002",
   "categoryName": "Transportation",
