@@ -1,0 +1,43 @@
+/* Categories Page - Premium Neo-contrast Minimal Styling */
+
+.categories-page {
+  padding: var(--space-6);
+  max-width: 1200px;
+  margin-inline: auto;
+}
+
+/* Category Name with Color Dot */
+.categories-page__name {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: var(--font-medium);
+}
+
+.categories-page__dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .categories-page {
+    padding: var(--space-4);
+  }
+
+  .categories-page .data-table th:nth-child(3),
+  .categories-page .data-table td:nth-child(3) {
+    display: none;
+  }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .categories-page .modal-overlay,
+  .categories-page .modal {
+    animation: none;
+  }
+}

@@ -6,9 +6,23 @@
  */
 
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './InsightsPage.css';
 import { FeatureGate } from '@/components/FeatureGate';
 import { useAuthStore } from '../store/auth';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  Button,
+  Badge,
+  Skeleton,
+} from '@/ui';
+import { EmptyState } from '@/ui/EmptyState';
+import { Page, PageHeader, PageContent } from '@/components/layout/Page';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { RefreshCw, Upload, Lightbulb } from 'lucide-react';
 import {
   BarChart,
   Bar,
@@ -58,7 +72,7 @@ type TabType = 'merchants' | 'anomalies';
 // ============================================================================
 
 export function InsightsPage() {
-  const [activeTab, setActiveTab] = useState<TabType>('merchants');
+  const [, setActiveTab] = useState<TabType>('merchants');
   const [merchants, setMerchants] = useState<MerchantInsight[]>([]);
   const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
   const [loading, setLoading] = useState(true);
@@ -110,63 +124,89 @@ export function InsightsPage() {
   // Render
   // ============================================================================
 
+  const navigate = useNavigate();
+
   return (
     <FeatureGate feature="insightsV2">
-      <div className="insights-page">
-        <header className="page-header">
-          <h1>Insights Dashboard</h1>
-          <p className="subtitle">AI-powered spending analysis</p>
-        </header>
+      <Page>
+        <PageHeader
+          title="Insights Dashboard"
+          description="AI-powered spending analysis"
+        >
+          <Button variant="secondary" onClick={loadInsights} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </PageHeader>
 
-        {/* Tab Navigation */}
-        <div className="tabs">
-          <button
-            className={`tab ${activeTab === 'merchants' ? 'active' : ''}`}
-            onClick={() => setActiveTab('merchants')}
-          >
-            Merchant Insights
-          </button>
-          <button
-            className={`tab ${activeTab === 'anomalies' ? 'active' : ''}`}
-            onClick={() => setActiveTab('anomalies')}
-          >
-            Anomalies
-            {anomalies.filter((a) => a.status === 'new').length > 0 && (
-              <span className="badge">
-                {anomalies.filter((a) => a.status === 'new').length}
-              </span>
+        <PageContent>
+          <Tabs defaultValue="merchants" onValueChange={(v) => setActiveTab(v as TabType)}>
+            <TabsList className="mb-6">
+              <TabsTrigger value="merchants">Merchant Insights</TabsTrigger>
+              <TabsTrigger value="anomalies" className="relative">
+                Anomalies
+                {anomalies.filter((a) => a.status === 'new').length > 0 && (
+                  <Badge variant="destructive" className="ml-2 h-5 min-w-5 px-1.5">
+                    {anomalies.filter((a) => a.status === 'new').length}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Content */}
+            {loading && <InsightsLoadingSkeleton />}
+
+            {error && (
+              <Card className="insights__error">
+                <CardContent className="py-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-destructive">⚠️ {error}</p>
+                    <Button variant="destructive" size="sm" onClick={loadInsights}>
+                      Retry
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
             )}
-          </button>
-        </div>
 
-        {/* Content */}
-        <div className="tab-content">
-          {loading && (
-            <div className="loading">
-              <div className="spinner" />
-              <p>Loading insights...</p>
-            </div>
-          )}
+            {!loading && !error && (
+              <>
+                <TabsContent value="merchants">
+                  {merchants.length === 0 ? (
+                    /* Improved Empty State */
+                    <Card>
+                      <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+                        <div className="mb-4 rounded-full bg-muted p-3">
+                          <Lightbulb className="h-8 w-8 text-muted-foreground" />
+                        </div>
+                        <h3 className="text-lg font-semibold text-foreground">
+                          No insights yet
+                        </h3>
+                        <p className="mt-1 mb-6 max-w-sm text-sm text-muted-foreground">
+                          Import some transactions to see AI-powered spending insights and merchant analysis.
+                        </p>
+                        <Button onClick={() => navigate('/import')}>
+                          <Upload className="mr-2 h-4 w-4" />
+                          Import CSV
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    <MerchantsTab merchants={merchants} />
+                  )}
+                </TabsContent>
 
-          {error && (
-            <div className="error-banner">
-              <p>⚠️ {error}</p>
-              <button onClick={loadInsights}>Retry</button>
-            </div>
-          )}
-
-          {!loading && !error && activeTab === 'merchants' && (
-            <MerchantsTab merchants={merchants} />
-          )}
-
-          {!loading && !error && activeTab === 'anomalies' && (
-            <AnomaliesTab
-              anomalies={anomalies}
-              onAction={(id, action) => handleAnomalyAction(id, action)}
-            />
-          )}
-        </div>
-      </div>
+                <TabsContent value="anomalies">
+                  <AnomaliesTab
+                    anomalies={anomalies}
+                    onAction={(id, action) => handleAnomalyAction(id, action)}
+                  />
+                </TabsContent>
+              </>
+            )}
+          </Tabs>
+        </PageContent>
+      </Page>
     </FeatureGate>
   );
 
@@ -191,6 +231,47 @@ export function InsightsPage() {
 }
 
 // ============================================================================
+// Loading Skeleton
+// ============================================================================
+
+function InsightsLoadingSkeleton() {
+  return (
+    <div className="insights__skeleton">
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        {[1, 2, 3].map((i) => (
+          <Card key={i}>
+            <CardContent className="p-6">
+              <Skeleton className="h-8 w-20 mb-2" />
+              <Skeleton className="h-4 w-24" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      <Card className="mb-6">
+        <CardHeader>
+          <Skeleton className="h-6 w-48" />
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="h-64" />
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <Skeleton className="h-6 w-32" />
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Skeleton key={i} className="h-12" />
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+// ============================================================================
 // Merchants Tab
 // ============================================================================
 
@@ -199,6 +280,7 @@ interface MerchantsTabProps {
 }
 
 function MerchantsTab({ merchants }: MerchantsTabProps) {
+  const navigate = useNavigate();
   const [selectedMerchant, setSelectedMerchant] = useState<MerchantInsight | null>(null);
 
   // Sort by total spent (descending)
@@ -210,11 +292,14 @@ function MerchantsTab({ merchants }: MerchantsTabProps) {
   // Empty state
   if (merchants.length === 0) {
     return (
-      <div className="empty-state">
-        <div className="empty-icon">📊</div>
-        <h3>No merchant data yet</h3>
-        <p>Import transactions to see your spending breakdown by merchant.</p>
-      </div>
+      <EmptyState
+        icon="📊"
+        title="No merchant data yet"
+        description="Import transactions to see your spending breakdown by merchant."
+        actions={[
+          { label: 'Import CSV', onClick: () => navigate('/import') },
+        ]}
+      />
     );
   }
 
@@ -225,69 +310,80 @@ function MerchantsTab({ merchants }: MerchantsTabProps) {
   return (
     <div className="merchants-tab">
       {/* Top Merchants Chart */}
-      <section className="chart-section">
-        <h2>Top Merchants by Spending</h2>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={top10}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="merchant" angle={-45} textAnchor="end" height={100} />
-            <YAxis tickFormatter={(v) => formatGBP(v)} />
-            <Tooltip formatter={(value) => formatGBP(Number(value))} />
-            <Legend />
-            <Bar dataKey="totalSpent" fill="#4F46E5" name="Total Spent" />
-          </BarChart>
-        </ResponsiveContainer>
-      </section>
+      <Card className="insights__chart-card">
+        <CardHeader>
+          <CardTitle>Top Merchants by Spending</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="chart-container">
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={top10}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                <XAxis dataKey="merchant" angle={-45} textAnchor="end" height={100} stroke="var(--color-text-muted)" fontSize={12} />
+                <YAxis tickFormatter={(v) => formatGBP(v)} stroke="var(--color-text-muted)" fontSize={12} />
+                <Tooltip formatter={(value) => formatGBP(Number(value))} contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px' }} />
+                <Legend />
+                <Bar dataKey="totalSpent" fill="var(--color-primary)" name="Total Spent" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Merchants List */}
-      <section className="merchants-list">
-        <h2>All Merchants</h2>
-        <div className="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Merchant</th>
-                <th>Category</th>
-                <th>Total Spent</th>
-                <th>Transactions</th>
-                <th>Avg Amount</th>
-                <th>Trend</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sortedMerchants.map((merchant, idx) => (
-                <tr key={idx}>
-                  <td className="merchant-name">{merchant.merchant}</td>
-                  <td>
-                    <span className="category-badge">{merchant.category}</span>
-                  </td>
-                  <td className="amount">{formatGBP(merchant.totalSpent)}</td>
-                  <td>{merchant.transactionCount}</td>
-                  <td className="amount">{formatGBP(merchant.avgAmount)}</td>
-                  <td>
-                    <span className={`trend trend-${merchant.trend}`}>
-                      {merchant.trend === 'increasing' && '📈'}
-                      {merchant.trend === 'stable' && '➡️'}
-                      {merchant.trend === 'decreasing' && '📉'}
-                      {' '}
-                      {merchant.trend}
-                    </span>
-                  </td>
-                  <td>
-                    <button
-                      className="btn-small"
-                      onClick={() => setSelectedMerchant(merchant)}
-                    >
-                      Details
-                    </button>
-                  </td>
+      <Card>
+        <CardHeader>
+          <CardTitle>All Merchants</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="table-wrapper">
+            <table className="insights-table">
+              <thead>
+                <tr>
+                  <th>Merchant</th>
+                  <th>Category</th>
+                  <th className="text-right">Total Spent</th>
+                  <th className="text-right">Transactions</th>
+                  <th className="text-right">Avg Amount</th>
+                  <th>Trend</th>
+                  <th></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+              </thead>
+              <tbody>
+                {sortedMerchants.map((merchant, idx) => (
+                  <tr key={idx}>
+                    <td className="font-medium">{merchant.merchant}</td>
+                    <td>
+                      <Badge variant="secondary">{merchant.category}</Badge>
+                    </td>
+                    <td className="text-right tabular-nums font-medium">{formatGBP(merchant.totalSpent)}</td>
+                    <td className="text-right tabular-nums">{merchant.transactionCount}</td>
+                    <td className="text-right tabular-nums">{formatGBP(merchant.avgAmount)}</td>
+                    <td>
+                      <span className={`trend trend--${merchant.trend}`}>
+                        {merchant.trend === 'increasing' && '↑'}
+                        {merchant.trend === 'stable' && '→'}
+                        {merchant.trend === 'decreasing' && '↓'}
+                        {' '}
+                        {merchant.trend}
+                      </span>
+                    </td>
+                    <td>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedMerchant(merchant)}
+                      >
+                        Details
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Merchant Detail Modal */}
       {selectedMerchant && (
@@ -324,50 +420,62 @@ function AnomaliesTab({ anomalies, onAction }: AnomaliesTabProps) {
 
   return (
     <div className="anomalies-tab">
-      {/* Summary */}
-      <div className="anomaly-summary">
-        <div className="summary-card">
-          <h3>{newCount}</h3>
-          <p>New Anomalies</p>
-        </div>
-        <div className="summary-card">
-          <h3>{snoozedCount}</h3>
-          <p>Snoozed</p>
-        </div>
-        <div className="summary-card">
-          <h3>{anomalies.length}</h3>
-          <p>Total Detected</p>
-        </div>
+      {/* Summary Cards */}
+      <div className="grid grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-6 text-center">
+            <div className="text-3xl font-bold text-primary mb-1">{newCount}</div>
+            <p className="text-sm text-muted uppercase tracking-wide">New Anomalies</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6 text-center">
+            <div className="text-3xl font-bold text-warning mb-1">{snoozedCount}</div>
+            <p className="text-sm text-muted uppercase tracking-wide">Snoozed</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6 text-center">
+            <div className="text-3xl font-bold mb-1">{anomalies.length}</div>
+            <p className="text-sm text-muted uppercase tracking-wide">Total Detected</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filter Buttons */}
-      <div className="filter-buttons">
-        <button
-          className={filter === 'new' ? 'active' : ''}
+      <div className="filter-bar">
+        <Button
+          variant={filter === 'new' ? 'primary' : 'secondary'}
+          size="sm"
           onClick={() => setFilter('new')}
         >
           New ({newCount})
-        </button>
-        <button
-          className={filter === 'snoozed' ? 'active' : ''}
+        </Button>
+        <Button
+          variant={filter === 'snoozed' ? 'primary' : 'secondary'}
+          size="sm"
           onClick={() => setFilter('snoozed')}
         >
           Snoozed ({snoozedCount})
-        </button>
-        <button
-          className={filter === 'all' ? 'active' : ''}
+        </Button>
+        <Button
+          variant={filter === 'all' ? 'primary' : 'secondary'}
+          size="sm"
           onClick={() => setFilter('all')}
         >
           All ({anomalies.length})
-        </button>
+        </Button>
       </div>
 
       {/* Anomalies List */}
       <div className="anomalies-list">
         {filteredAnomalies.length === 0 && (
-          <div className="empty-state">
-            <p>✨ No {filter !== 'all' ? filter : ''} anomalies found</p>
-          </div>
+          <EmptyState
+            icon="✨"
+            title={`No ${filter !== 'all' ? filter : ''} anomalies`}
+            description="No anomalies match the current filter."
+            variant="compact"
+          />
         )}
 
         {filteredAnomalies.map((anomaly) => (
@@ -392,86 +500,77 @@ interface AnomalyCardProps {
 }
 
 function AnomalyCard({ anomaly, onAction }: AnomalyCardProps) {
-  const severityColors = {
-    high: '#EF4444',
-    medium: '#F59E0B',
-    low: '#10B981',
-  };
+  const formatGBP = (value: number) => 
+    new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(value);
 
   return (
-    <div className={`anomaly-card severity-${anomaly.severity} status-${anomaly.status}`}>
-      <div className="anomaly-header">
-        <div className="anomaly-title">
-          <h3>{anomaly.merchant}</h3>
-          <span
-            className="severity-badge"
-            style={{ backgroundColor: severityColors[anomaly.severity] }}
-          >
-            {anomaly.severity}
-          </span>
+    <Card className={`anomaly-card anomaly-card--${anomaly.severity} anomaly-card--${anomaly.status}`}>
+      <CardContent className="p-4">
+        <div className="anomaly-card__header">
+          <div className="anomaly-card__title">
+            <h3>{anomaly.merchant}</h3>
+            <Badge
+              variant={anomaly.severity === 'high' ? 'destructive' : anomaly.severity === 'medium' ? 'warning' : 'secondary'}
+            >
+              {anomaly.severity}
+            </Badge>
+          </div>
+          <div className="anomaly-card__amount">{formatGBP(anomaly.amount)}</div>
         </div>
-        <div className="anomaly-amount">${anomaly.amount.toFixed(2)}</div>
-      </div>
 
-      <div className="anomaly-details">
-        <div className="detail-row">
-          <span className="label">Category:</span>
-          <span className="value">{anomaly.category}</span>
+        <div className="anomaly-card__details">
+          <div className="anomaly-card__row">
+            <span className="anomaly-card__label">Category:</span>
+            <span>{anomaly.category}</span>
+          </div>
+          <div className="anomaly-card__row">
+            <span className="anomaly-card__label">Date:</span>
+            <span>{new Date(anomaly.date).toLocaleDateString()}</span>
+          </div>
+          <div className="anomaly-card__row">
+            <span className="anomaly-card__label">Reason:</span>
+            <span className="text-destructive font-medium">{anomaly.reason}</span>
+          </div>
         </div>
-        <div className="detail-row">
-          <span className="label">Date:</span>
-          <span className="value">{new Date(anomaly.date).toLocaleDateString()}</span>
-        </div>
-        <div className="detail-row">
-          <span className="label">Reason:</span>
-          <span className="value reason">{anomaly.reason}</span>
-        </div>
-      </div>
 
-      {anomaly.status === 'new' && (
-        <div className="anomaly-actions">
-          <button
-            className="btn-action btn-snooze"
-            onClick={() => onAction(anomaly.id, 'snooze')}
-            title="Snooze for later review"
-          >
-            😴 Snooze
-          </button>
-          <button
-            className="btn-action btn-confirm"
-            onClick={() => onAction(anomaly.id, 'confirm')}
-            title="This is unusual and correct"
-          >
-            ✓ Confirm
-          </button>
-          <button
-            className="btn-action btn-ignore"
-            onClick={() => onAction(anomaly.id, 'ignore')}
-            title="Ignore this pattern in future"
-          >
-            🚫 Ignore
-          </button>
-        </div>
-      )}
+        {anomaly.status === 'new' && (
+          <div className="anomaly-card__actions">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => onAction(anomaly.id, 'snooze')}
+              title="Snooze for later review"
+            >
+              😴 Snooze
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => onAction(anomaly.id, 'confirm')}
+              title="This is unusual and correct"
+            >
+              ✓ Confirm
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onAction(anomaly.id, 'ignore')}
+              title="Ignore this pattern in future"
+            >
+              🚫 Ignore
+            </Button>
+          </div>
+        )}
 
-      {anomaly.status === 'snoozed' && (
-        <div className="anomaly-status-badge">
-          <span>😴 Snoozed</span>
-        </div>
-      )}
-
-      {anomaly.status === 'confirmed' && (
-        <div className="anomaly-status-badge confirmed">
-          <span>✓ Confirmed</span>
-        </div>
-      )}
-
-      {anomaly.status === 'ignored' && (
-        <div className="anomaly-status-badge ignored">
-          <span>🚫 Ignored</span>
-        </div>
-      )}
-    </div>
+        {anomaly.status !== 'new' && (
+          <div className={`anomaly-card__status anomaly-card__status--${anomaly.status}`}>
+            {anomaly.status === 'snoozed' && '😴 Snoozed'}
+            {anomaly.status === 'confirmed' && '✓ Confirmed'}
+            {anomaly.status === 'ignored' && '🚫 Ignored'}
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
@@ -485,54 +584,62 @@ interface MerchantDetailModalProps {
 }
 
 function MerchantDetailModal({ merchant, onClose }: MerchantDetailModalProps) {
+  const formatGBP = (value: number) => 
+    new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'GBP' }).format(value);
+
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true" aria-labelledby="modal-title">
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>{merchant.merchant}</h2>
-          <button className="btn-close" onClick={onClose}>
+          <h2 id="modal-title">{merchant.merchant}</h2>
+          <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close">
             ✕
-          </button>
+          </Button>
         </div>
 
         <div className="modal-body">
-          <div className="merchant-stats">
-            <div className="stat">
-              <label>Total Spent</label>
-              <span className="value">${merchant.totalSpent.toFixed(2)}</span>
+          <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="merchant-stat">
+              <span className="merchant-stat__label">Total Spent</span>
+              <span className="merchant-stat__value">{formatGBP(merchant.totalSpent)}</span>
             </div>
-            <div className="stat">
-              <label>Transactions</label>
-              <span className="value">{merchant.transactionCount}</span>
+            <div className="merchant-stat">
+              <span className="merchant-stat__label">Transactions</span>
+              <span className="merchant-stat__value">{merchant.transactionCount}</span>
             </div>
-            <div className="stat">
-              <label>Average Amount</label>
-              <span className="value">${merchant.avgAmount.toFixed(2)}</span>
+            <div className="merchant-stat">
+              <span className="merchant-stat__label">Average Amount</span>
+              <span className="merchant-stat__value">{formatGBP(merchant.avgAmount)}</span>
             </div>
-            <div className="stat">
-              <label>Category</label>
-              <span className="value">{merchant.category}</span>
+            <div className="merchant-stat">
+              <span className="merchant-stat__label">Category</span>
+              <span className="merchant-stat__value">{merchant.category}</span>
             </div>
           </div>
 
           {merchant.monthlyData && merchant.monthlyData.length > 0 && (
-            <div className="monthly-trend">
-              <h3>6-Month Trend</h3>
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={merchant.monthlyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip formatter={(value) => `$${Number(value).toFixed(2)}`} />
-                  <Line
-                    type="monotone"
-                    dataKey="amount"
-                    stroke="#4F46E5"
-                    strokeWidth={2}
-                    dot={{ r: 4 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
+            <div>
+              <h3 className="text-lg font-semibold mb-4">6-Month Trend</h3>
+              <div className="chart-container">
+                <ResponsiveContainer width="100%" height={200}>
+                  <LineChart data={merchant.monthlyData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                    <XAxis dataKey="month" stroke="var(--color-text-muted)" fontSize={12} />
+                    <YAxis stroke="var(--color-text-muted)" fontSize={12} />
+                    <Tooltip 
+                      formatter={(value) => formatGBP(Number(value))} 
+                      contentStyle={{ background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: '8px' }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="amount"
+                      stroke="var(--color-primary)"
+                      strokeWidth={2}
+                      dot={{ r: 4, fill: 'var(--color-primary)' }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           )}
         </div>

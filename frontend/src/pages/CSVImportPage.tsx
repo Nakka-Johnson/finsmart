@@ -9,9 +9,23 @@
  */
 
 import { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FeatureGate } from '@/components/FeatureGate';
 import { useAuthStore } from '@/store/auth';
 import { useToastStore } from '@/store/toast';
+import { Button, Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/ui';
+import { Page, PageHeader, PageContent } from '@/components/layout/Page';
+import { Stepper, Step } from '@/components/ui/stepper';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Upload, FileText, CheckCircle, ArrowLeft, ArrowRight, Loader2 } from 'lucide-react';
 import './CSVImportPage.css';
 
 // ============================================================================
@@ -426,88 +440,92 @@ export function CSVImportPage() {
   // ============================================================================
   // Render
   // ============================================================================
+  
+  // Map step string to number for Stepper
+  const stepNumber = {
+    'upload': 1,
+    'map-headers': 2,
+    'preview': 3,
+    'importing': 3,
+    'complete': 3,
+  }[step];
 
   return (
     <FeatureGate feature="csvImportV2">
-      <div className="csv-import-page">
-        <header className="page-header">
-          <h1>Import Transactions</h1>
-          <p className="subtitle">Upload CSV with AI-powered categorization</p>
-        </header>
+      <Page>
+        <PageHeader
+          title="Import Transactions"
+          description="Upload CSV with AI-powered categorization"
+        />
 
-        {/* Progress Steps */}
-        <div className="import-steps">
-          <div className={`step ${step === 'upload' ? 'active' : ''} ${['map-headers', 'preview', 'importing', 'complete'].includes(step) ? 'completed' : ''}`}>
-            <div className="step-number">1</div>
-            <div className="step-label">Upload File</div>
+        <PageContent>
+          {/* Progress Steps */}
+          <div className="mb-8">
+            <Stepper currentStep={stepNumber}>
+              <Step stepNumber={1} title="Upload File" description="Select CSV file and account" />
+              <Step stepNumber={2} title="Map Headers" description="Match columns to fields" />
+              <Step stepNumber={3} title="Preview & Import" description="Review and import" />
+            </Stepper>
           </div>
-          <div className="step-divider" />
-          <div className={`step ${step === 'map-headers' ? 'active' : ''} ${['preview', 'importing', 'complete'].includes(step) ? 'completed' : ''}`}>
-            <div className="step-number">2</div>
-            <div className="step-label">Map Headers</div>
+
+          {/* Step Content */}
+          <div className="space-y-6">
+            {step === 'upload' && (
+              <UploadStep
+                file={file}
+                accounts={accounts}
+                selectedAccount={selectedAccount}
+                onFileSelect={handleFileSelect}
+                onAccountChange={setSelectedAccount}
+                onUpload={handleUpload}
+                fileInputRef={fileInputRef}
+              />
+            )}
+
+            {step === 'map-headers' && (
+              <MapHeadersStep
+                headers={headers}
+                headerMapping={headerMapping}
+                csvData={csvData}
+                onMappingChange={handleHeaderMappingChange}
+                onNext={handleMapHeaders}
+                onBack={() => setStep('upload')}
+              />
+            )}
+
+            {step === 'preview' && (
+              <PreviewStep
+                rows={previewRows}
+                stats={stats}
+                onToggleRow={toggleRowSelection}
+                onToggleAll={toggleSelectAll}
+                onApplySuggestion={applySuggestedCategory}
+                onApplyAllSuggestions={applyAllSuggestions}
+                onImport={handleImport}
+                onBack={() => setStep('map-headers')}
+              />
+            )}
+
+            {step === 'importing' && (
+              <Card>
+                <CardContent className="flex flex-col items-center justify-center py-16">
+                  <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+                  <h2 className="text-xl font-semibold mb-2">Importing transactions...</h2>
+                  <p className="text-muted-foreground">Please wait while we process your data</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {step === 'complete' && importResult && (
+              <CompleteStep
+                imported={importResult.imported}
+                skipped={importResult.skipped}
+                onReset={resetImport}
+              />
+            )}
           </div>
-          <div className="step-divider" />
-          <div className={`step ${step === 'preview' ? 'active' : ''} ${['importing', 'complete'].includes(step) ? 'completed' : ''}`}>
-            <div className="step-number">3</div>
-            <div className="step-label">Preview & Import</div>
-          </div>
-        </div>
-
-        {/* Step Content */}
-        <div className="import-content">
-          {step === 'upload' && (
-            <UploadStep
-              file={file}
-              accounts={accounts}
-              selectedAccount={selectedAccount}
-              onFileSelect={handleFileSelect}
-              onAccountChange={setSelectedAccount}
-              onUpload={handleUpload}
-              fileInputRef={fileInputRef}
-            />
-          )}
-
-          {step === 'map-headers' && (
-            <MapHeadersStep
-              headers={headers}
-              headerMapping={headerMapping}
-              csvData={csvData}
-              onMappingChange={handleHeaderMappingChange}
-              onNext={handleMapHeaders}
-              onBack={() => setStep('upload')}
-            />
-          )}
-
-          {step === 'preview' && (
-            <PreviewStep
-              rows={previewRows}
-              stats={stats}
-              onToggleRow={toggleRowSelection}
-              onToggleAll={toggleSelectAll}
-              onApplySuggestion={applySuggestedCategory}
-              onApplyAllSuggestions={applyAllSuggestions}
-              onImport={handleImport}
-              onBack={() => setStep('map-headers')}
-            />
-          )}
-
-          {step === 'importing' && (
-            <div className="importing-state">
-              <div className="spinner large" />
-              <h2>Importing transactions...</h2>
-              <p>Please wait while we process your data</p>
-            </div>
-          )}
-
-          {step === 'complete' && importResult && (
-            <CompleteStep
-              imported={importResult.imported}
-              skipped={importResult.skipped}
-              onReset={resetImport}
-            />
-          )}
-        </div>
-      </div>
+        </PageContent>
+      </Page>
     </FeatureGate>
   );
 }
@@ -536,64 +554,106 @@ function UploadStep({
   fileInputRef,
 }: UploadStepProps) {
   return (
-    <div className="upload-step">
-      <div className="upload-card">
-        <h2>Select Account</h2>
-        <select
-          value={selectedAccount}
-          onChange={(e) => onAccountChange(e.target.value)}
-          className="account-select"
-        >
-          {accounts.map((account) => (
-            <option key={account.id} value={account.id}>
-              {account.name} ({account.type})
-            </option>
-          ))}
-        </select>
+    <div className="grid gap-6 md:grid-cols-2">
+      {/* Account Selection Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Select Account</CardTitle>
+          <CardDescription>Choose the account to import transactions into</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Select value={selectedAccount} onValueChange={onAccountChange}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select an account" />
+            </SelectTrigger>
+            <SelectContent>
+              {accounts.map((account) => (
+                <SelectItem key={account.id} value={account.id}>
+                  {account.name} ({account.type})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
 
-        <h2>Upload CSV File</h2>
-        <div className="file-drop-zone">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".csv"
-            onChange={onFileSelect}
-            className="file-input"
-          />
-          <div className="file-drop-content">
-            {file ? (
-              <>
-                <div className="file-icon">📄</div>
-                <p className="file-name">{file.name}</p>
-                <p className="file-size">{(file.size / 1024).toFixed(2)} KB</p>
-              </>
-            ) : (
-              <>
-                <div className="upload-icon">⬆️</div>
-                <p className="upload-text">Click to select CSV file</p>
-                <p className="upload-hint">or drag and drop here</p>
-              </>
-            )}
+      {/* File Upload Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Upload CSV File</CardTitle>
+          <CardDescription>Select a CSV file containing your transactions</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="relative">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv"
+              onChange={onFileSelect}
+              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+            />
+            <div className="flex flex-col items-center justify-center border-2 border-dashed border-muted-foreground/25 rounded-lg p-8 hover:border-primary/50 transition-colors">
+              {file ? (
+                <>
+                  <FileText className="h-10 w-10 text-primary mb-3" />
+                  <p className="font-medium text-foreground">{file.name}</p>
+                  <p className="text-sm text-muted-foreground">{(file.size / 1024).toFixed(2)} KB</p>
+                </>
+              ) : (
+                <>
+                  <Upload className="h-10 w-10 text-muted-foreground mb-3" />
+                  <p className="font-medium text-foreground">Click to select CSV file</p>
+                  <p className="text-sm text-muted-foreground">or drag and drop here</p>
+                </>
+              )}
+            </div>
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        <div className="csv-format-hint">
-          <h3>CSV Format Requirements:</h3>
-          <ul>
-            <li>First row must contain headers</li>
-            <li>Required columns: Date, Description, Amount</li>
-            <li>Optional: Category (will be auto-suggested by AI)</li>
-            <li>Date format: YYYY-MM-DD or MM/DD/YYYY</li>
+      {/* Format Requirements Card - Full Width */}
+      <Card className="md:col-span-2">
+        <CardHeader>
+          <CardTitle>CSV Format Requirements</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-2 text-sm text-muted-foreground">
+            <li className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4 text-primary" />
+              First row must contain headers
+            </li>
+            <li className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4 text-primary" />
+              Required columns: Date, Description, Amount
+            </li>
+            <li className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4 text-primary" />
+              Optional: Category (will be auto-suggested by AI)
+            </li>
+            <li className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4 text-primary" />
+              Date format: YYYY-MM-DD or MM/DD/YYYY
+            </li>
           </ul>
-        </div>
+        </CardContent>
+      </Card>
 
-        <button
+      {/* Action Footer - Full Width */}
+      <div className="md:col-span-2 flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-border">
+        <p className="text-sm text-muted-foreground">
+          {!selectedAccount && !file && 'Select an account and upload a CSV file to continue'}
+          {!selectedAccount && file && 'Select an account to continue'}
+          {selectedAccount && !file && 'Upload a CSV file to continue'}
+          {selectedAccount && file && 'Ready to map your CSV columns'}
+        </p>
+        <Button
           onClick={onUpload}
           disabled={!file || !selectedAccount}
-          className="btn-primary btn-large"
+          size="lg"
         >
           Next: Map Headers
-        </button>
+          <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
       </div>
     </div>
   );
@@ -623,112 +683,131 @@ function MapHeadersStep({
   const sampleRow = csvData[0] || [];
 
   return (
-    <div className="map-headers-step">
-      <div className="mapping-card">
-        <h2>Map CSV Columns</h2>
-        <p className="subtitle">Match your CSV headers to transaction fields</p>
-
-        <div className="mapping-grid">
+    <Card>
+      <CardHeader>
+        <CardTitle>Map CSV Columns</CardTitle>
+        <CardDescription>Match your CSV headers to transaction fields</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-2">
           {/* Date */}
-          <div className="mapping-row">
-            <label className="mapping-label required">Date</label>
-            <select
-              value={headerMapping.date ?? ''}
-              onChange={(e) => onMappingChange('date', e.target.value)}
-              className="mapping-select"
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1">
+              Date <span className="text-destructive">*</span>
+            </Label>
+            <Select
+              value={headerMapping.date?.toString() ?? ''}
+              onValueChange={(value) => onMappingChange('date', value)}
             >
-              <option value="">-- Select Column --</option>
-              {headers.map((header, index) => (
-                <option key={index} value={index}>
-                  {header}
-                </option>
-              ))}
-            </select>
-            <div className="mapping-sample">
-              {headerMapping.date !== undefined && sampleRow[headerMapping.date]}
-            </div>
+              <SelectTrigger>
+                <SelectValue placeholder="Select column" />
+              </SelectTrigger>
+              <SelectContent>
+                {headers.map((header, index) => (
+                  <SelectItem key={index} value={index.toString()}>
+                    {header}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {headerMapping.date !== undefined && (
+              <p className="text-xs text-muted-foreground">Sample: {sampleRow[headerMapping.date]}</p>
+            )}
           </div>
 
           {/* Description */}
-          <div className="mapping-row">
-            <label className="mapping-label required">Description</label>
-            <select
-              value={headerMapping.description ?? ''}
-              onChange={(e) => onMappingChange('description', e.target.value)}
-              className="mapping-select"
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1">
+              Description <span className="text-destructive">*</span>
+            </Label>
+            <Select
+              value={headerMapping.description?.toString() ?? ''}
+              onValueChange={(value) => onMappingChange('description', value)}
             >
-              <option value="">-- Select Column --</option>
-              {headers.map((header, index) => (
-                <option key={index} value={index}>
-                  {header}
-                </option>
-              ))}
-            </select>
-            <div className="mapping-sample">
-              {headerMapping.description !== undefined &&
-                sampleRow[headerMapping.description]}
-            </div>
+              <SelectTrigger>
+                <SelectValue placeholder="Select column" />
+              </SelectTrigger>
+              <SelectContent>
+                {headers.map((header, index) => (
+                  <SelectItem key={index} value={index.toString()}>
+                    {header}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {headerMapping.description !== undefined && (
+              <p className="text-xs text-muted-foreground">Sample: {sampleRow[headerMapping.description]}</p>
+            )}
           </div>
 
           {/* Amount */}
-          <div className="mapping-row">
-            <label className="mapping-label required">Amount</label>
-            <select
-              value={headerMapping.amount ?? ''}
-              onChange={(e) => onMappingChange('amount', e.target.value)}
-              className="mapping-select"
+          <div className="space-y-2">
+            <Label className="flex items-center gap-1">
+              Amount <span className="text-destructive">*</span>
+            </Label>
+            <Select
+              value={headerMapping.amount?.toString() ?? ''}
+              onValueChange={(value) => onMappingChange('amount', value)}
             >
-              <option value="">-- Select Column --</option>
-              {headers.map((header, index) => (
-                <option key={index} value={index}>
-                  {header}
-                </option>
-              ))}
-            </select>
-            <div className="mapping-sample">
-              {headerMapping.amount !== undefined && sampleRow[headerMapping.amount]}
-            </div>
+              <SelectTrigger>
+                <SelectValue placeholder="Select column" />
+              </SelectTrigger>
+              <SelectContent>
+                {headers.map((header, index) => (
+                  <SelectItem key={index} value={index.toString()}>
+                    {header}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {headerMapping.amount !== undefined && (
+              <p className="text-xs text-muted-foreground">Sample: {sampleRow[headerMapping.amount]}</p>
+            )}
           </div>
 
           {/* Category */}
-          <div className="mapping-row">
-            <label className="mapping-label optional">Category (Optional)</label>
-            <select
-              value={headerMapping.category ?? ''}
-              onChange={(e) => onMappingChange('category', e.target.value)}
-              className="mapping-select"
+          <div className="space-y-2">
+            <Label>Category (Optional)</Label>
+            <Select
+              value={headerMapping.category?.toString() ?? ''}
+              onValueChange={(value) => onMappingChange('category', value)}
             >
-              <option value="">-- Select Column or Skip --</option>
-              {headers.map((header, index) => (
-                <option key={index} value={index}>
-                  {header}
-                </option>
-              ))}
-            </select>
-            <div className="mapping-sample">
-              {headerMapping.category !== undefined && sampleRow[headerMapping.category]}
-            </div>
+              <SelectTrigger>
+                <SelectValue placeholder="Select column or skip" />
+              </SelectTrigger>
+              <SelectContent>
+                {headers.map((header, index) => (
+                  <SelectItem key={index} value={index.toString()}>
+                    {header}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {headerMapping.category !== undefined && (
+              <p className="text-xs text-muted-foreground">Sample: {sampleRow[headerMapping.category]}</p>
+            )}
           </div>
         </div>
 
-        <div className="mapping-actions">
-          <button onClick={onBack} className="btn-secondary">
+        <div className="flex justify-between pt-4 border-t">
+          <Button variant="secondary" onClick={onBack}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
             Back
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={onNext}
             disabled={
               headerMapping.date === undefined ||
               headerMapping.description === undefined ||
               headerMapping.amount === undefined
             }
-            className="btn-primary"
           >
             Next: Preview Transactions
-          </button>
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Button>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -760,119 +839,135 @@ function PreviewStep({
   const hasSuggestions = rows.some((r) => r.suggestedCategory && r.suggestedCategory !== r.category);
 
   return (
-    <div className="preview-step">
+    <div className="space-y-6">
       {/* Stats */}
-      <div className="preview-stats">
-        <div className="stat-card">
-          <div className="stat-value">{stats.total}</div>
-          <div className="stat-label">Total Rows</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-value">{stats.selected}</div>
-          <div className="stat-label">Selected</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-value">{stats.duplicates}</div>
-          <div className="stat-label">Duplicates</div>
-        </div>
-        <div className="stat-card highlight">
-          <div className="stat-value">{stats.categorized}</div>
-          <div className="stat-label">AI Categorized</div>
-        </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-3xl font-bold text-foreground">{stats.total}</div>
+            <p className="text-sm text-muted-foreground">Total Rows</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-3xl font-bold text-primary">{stats.selected}</div>
+            <p className="text-sm text-muted-foreground">Selected</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-3xl font-bold text-destructive">{stats.duplicates}</div>
+            <p className="text-sm text-muted-foreground">Duplicates</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-3xl font-bold text-green-600">{stats.categorized}</div>
+            <p className="text-sm text-muted-foreground">AI Categorized</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Actions */}
-      <div className="preview-actions">
-        <button onClick={onToggleAll} className="btn-secondary">
+      <div className="flex flex-wrap items-center gap-2">
+        <Button variant="secondary" onClick={onToggleAll}>
           Toggle All (Non-Duplicates)
-        </button>
+        </Button>
         {hasSuggestions && (
-          <button onClick={onApplyAllSuggestions} className="btn-ai">
+          <Button variant="secondary" onClick={onApplyAllSuggestions}>
             🤖 Apply All AI Suggestions
-          </button>
+          </Button>
         )}
       </div>
 
       {/* Preview Table */}
-      <div className="preview-table-container">
-        <table className="preview-table">
-          <thead>
-            <tr>
-              <th className="col-select">Select</th>
-              <th className="col-date">Date</th>
-              <th className="col-description">Description</th>
-              <th className="col-amount">Amount</th>
-              <th className="col-category">Category</th>
-              <th className="col-actions">AI Suggestion</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr
-                key={row.rowIndex}
-                className={`${row.isDuplicate ? 'duplicate-row' : ''} ${row.selected ? 'selected-row' : ''}`}
-              >
-                <td className="col-select">
-                  <input
-                    type="checkbox"
-                    checked={row.selected}
-                    onChange={() => onToggleRow(row.rowIndex)}
-                    disabled={row.isDuplicate}
-                  />
-                </td>
-                <td className="col-date">{row.date}</td>
-                <td className="col-description">
-                  {row.description}
-                  {row.isDuplicate && (
-                    <span className="duplicate-badge">Duplicate</span>
-                  )}
-                </td>
-                <td className="col-amount">${row.amount.toFixed(2)}</td>
-                <td className="col-category">
-                  {row.category || <span className="no-category">No category</span>}
-                </td>
-                <td className="col-actions">
-                  {row.suggestedCategory && row.suggestedCategory !== row.category && (
-                    <div className="ai-suggestion">
-                      <span className="suggestion-text">
-                        {row.suggestedCategory}
-                        {row.categoryScore && (
-                          <span className="confidence">
-                            {Math.round(row.categoryScore * 100)}%
+      <Card>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="border-b bg-muted/50">
+                <tr>
+                  <th className="px-4 py-3 text-left font-medium">Select</th>
+                  <th className="px-4 py-3 text-left font-medium">Date</th>
+                  <th className="px-4 py-3 text-left font-medium">Description</th>
+                  <th className="px-4 py-3 text-right font-medium">Amount</th>
+                  <th className="px-4 py-3 text-left font-medium">Category</th>
+                  <th className="px-4 py-3 text-left font-medium">AI Suggestion</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row) => (
+                  <tr
+                    key={row.rowIndex}
+                    className={`border-b transition-colors ${row.isDuplicate ? 'bg-destructive/10 opacity-60' : ''} ${row.selected && !row.isDuplicate ? 'bg-primary/5' : ''} hover:bg-muted/50`}
+                  >
+                    <td className="px-4 py-3">
+                      <Checkbox
+                        checked={row.selected}
+                        onCheckedChange={() => onToggleRow(row.rowIndex)}
+                        disabled={row.isDuplicate}
+                      />
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">{row.date}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        {row.description}
+                        {row.isDuplicate && (
+                          <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-destructive text-destructive-foreground">
+                            Duplicate
                           </span>
                         )}
-                      </span>
-                      <button
-                        onClick={() => onApplySuggestion(row.rowIndex)}
-                        className="btn-apply-suggestion"
-                        title="Apply AI suggestion"
-                      >
-                        ✓
-                      </button>
-                    </div>
-                  )}
-                  {row.suggestedCategory === row.category && (
-                    <span className="suggestion-applied">✓ Applied</span>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-right tabular-nums">${row.amount.toFixed(2)}</td>
+                    <td className="px-4 py-3">
+                      {row.category || <span className="text-muted-foreground">No category</span>}
+                    </td>
+                    <td className="px-4 py-3">
+                      {row.suggestedCategory && row.suggestedCategory !== row.category ? (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm">
+                            {row.suggestedCategory}
+                            {row.categoryScore && (
+                              <span className="ml-1 text-xs text-muted-foreground">
+                                ({Math.round(row.categoryScore * 100)}%)
+                              </span>
+                            )}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onApplySuggestion(row.rowIndex)}
+                            className="h-6 px-2"
+                          >
+                            ✓
+                          </Button>
+                        </div>
+                      ) : row.suggestedCategory === row.category ? (
+                        <span className="text-green-600 text-sm">✓ Applied</span>
+                      ) : null}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Import Actions */}
-      <div className="import-actions">
-        <button onClick={onBack} className="btn-secondary">
+      <div className="flex justify-between pt-4">
+        <Button variant="secondary" onClick={onBack}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
           Back
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={onImport}
           disabled={stats.selected === 0}
-          className="btn-primary btn-large"
+          size="lg"
         >
           Import {stats.selected} Transactions
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -889,28 +984,34 @@ interface CompleteStepProps {
 }
 
 function CompleteStep({ imported, skipped, onReset }: CompleteStepProps) {
+  const navigate = useNavigate();
+  
   return (
-    <div className="complete-step">
-      <div className="success-icon">✓</div>
-      <h2>Import Complete!</h2>
-      <div className="import-summary">
-        <p>
-          <strong>{imported}</strong> transactions imported successfully
-        </p>
-        {skipped > 0 && (
-          <p className="skipped">
-            {skipped} duplicates skipped
+    <Card>
+      <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 mb-6">
+          <CheckCircle className="h-8 w-8 text-green-600" />
+        </div>
+        <h2 className="text-2xl font-bold mb-2">Import Complete!</h2>
+        <div className="text-muted-foreground mb-6 space-y-1">
+          <p>
+            <span className="font-semibold text-foreground">{imported}</span> transactions imported successfully
           </p>
-        )}
-      </div>
-      <div className="complete-actions">
-        <button onClick={onReset} className="btn-primary">
-          Import Another File
-        </button>
-        <a href="/transactions" className="btn-secondary">
-          View Transactions
-        </a>
-      </div>
-    </div>
+          {skipped > 0 && (
+            <p className="text-sm">
+              {skipped} duplicates skipped
+            </p>
+          )}
+        </div>
+        <div className="flex gap-3">
+          <Button variant="secondary" onClick={onReset}>
+            Import Another File
+          </Button>
+          <Button onClick={() => navigate('/transactions')}>
+            View Transactions
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

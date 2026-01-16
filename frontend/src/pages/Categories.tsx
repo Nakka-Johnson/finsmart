@@ -2,11 +2,45 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '@/store/auth';
 import { categoryApi } from '@/api/endpoints';
 import type { CategoryResponse } from '@/api/types';
-import { Card } from '@/components/Card';
+import { Card, CardContent, Button, Badge } from '@/ui';
+import { Page, PageHeader, PageContent } from '@/components/layout/Page';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Loader } from '@/components/Loader';
 import { useToast } from '@/hooks/useToast';
 import { HttpError } from '@/api/http';
 import { formatDate } from '@/utils/format';
+import { MoreHorizontal, Plus, Trash2, Tags } from 'lucide-react';
+import './Categories.css';
 
 export function Categories() {
   const { token } = useAuthStore();
@@ -76,123 +110,155 @@ export function Categories() {
     return type === 'INCOME' ? '#10b981' : '#ef4444';
   };
 
+  // Safe formatDate with null handling
+  const safeFormatDate = (dateStr: string | null | undefined): string => {
+    if (!dateStr) return '—';
+    try {
+      return formatDate(dateStr);
+    } catch {
+      return '—';
+    }
+  };
+
   return (
-    <div className="categories-page">
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '1.5rem',
-        }}
+    <Page>
+      <PageHeader
+        title="Categories"
+        description="Organize your transactions"
       >
-        <h1>Categories</h1>
-        <button onClick={handleAddClick} className="btn btn-primary">
+        <Button onClick={handleAddClick}>
+          <Plus className="h-4 w-4 mr-2" />
           Add Category
-        </button>
-      </div>
+        </Button>
+      </PageHeader>
 
-      <Card>
-        {loading ? (
-          <Loader size="medium" />
-        ) : categories.length === 0 ? (
-          <p style={{ textAlign: 'center', color: '#666', padding: '2rem' }}>No categories found</p>
-        ) : (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Created</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {categories.map(c => (
-                <tr key={c.id}>
-                  <td>
-                    <span
-                      className="color-badge"
-                      style={{
-                        display: 'inline-block',
-                        width: '12px',
-                        height: '12px',
-                        borderRadius: '50%',
-                        backgroundColor: getCategoryColor(c.type),
-                        marginRight: '8px',
-                      }}
-                    />
-                    {c.name}
-                  </td>
-                  <td>
-                    <span className={`badge badge-${c.type === 'INCOME' ? 'success' : 'error'}`}>
-                      {c.type}
-                    </span>
-                  </td>
-                  <td>{formatDate(c.createdAt)}</td>
-                  <td>
-                    <button onClick={() => handleDelete(c.id)} className="btn btn-small btn-danger">
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </Card>
+      <PageContent>
+        <Card>
+          <CardContent className="p-0">
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader size="medium" />
+              </div>
+            ) : categories.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
+                <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
+                  <Tags className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-semibold mb-1">No categories yet</h3>
+                <p className="text-sm text-muted-foreground mb-6 max-w-[300px]">
+                  Create categories to organize and group your transactions.
+                </p>
+                <Button onClick={handleAddClick}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Category
+                </Button>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[300px]">Name</TableHead>
+                    <TableHead className="w-[120px]">Type</TableHead>
+                    <TableHead className="w-[160px]">Created</TableHead>
+                    <TableHead className="w-[80px] text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {categories.map(c => (
+                    <TableRow key={c.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <span
+                            className="h-3 w-3 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: getCategoryColor(c.type) }}
+                          />
+                          <span className="font-medium">{c.name}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={c.type === 'INCOME' ? 'default' : 'destructive'}>
+                          {c.type}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {safeFormatDate(c.createdAt)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <span className="sr-only">Open menu</span>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              className="text-destructive focus:text-destructive"
+                              onClick={() => handleDelete(c.id)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
+      </PageContent>
 
-      {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Add Category</h2>
-              <button onClick={() => setShowModal(false)} className="btn btn-small">
-                ×
-              </button>
-            </div>
-            <form onSubmit={handleSubmit} className="modal-body">
-              <div className="form-group">
-                <label>Name</label>
-                <input
-                  type="text"
+      {/* Add Category Dialog */}
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add Category</DialogTitle>
+            <DialogDescription>
+              Create a new category to organize your transactions.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit}>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="name">Name</Label>
+                <Input
+                  id="name"
                   value={formData.name}
                   onChange={e => setFormData({ ...formData, name: e.target.value })}
-                  required
                   placeholder="e.g. Groceries, Salary"
+                  required
                 />
               </div>
-
-              <div className="form-group">
-                <label>Type</label>
-                <select
+              <div className="grid gap-2">
+                <Label htmlFor="type">Type</Label>
+                <Select
                   value={formData.type}
-                  onChange={e =>
-                    setFormData({ ...formData, type: e.target.value as 'INCOME' | 'EXPENSE' })
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, type: value as 'INCOME' | 'EXPENSE' })
                   }
-                  required
                 >
-                  <option value="EXPENSE">Expense</option>
-                  <option value="INCOME">Income</option>
-                </select>
+                  <SelectTrigger id="type">
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="EXPENSE">Expense</SelectItem>
+                    <SelectItem value="INCOME">Income</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="btn btn-secondary"
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  Add
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="secondary" onClick={() => setShowModal(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">Add Category</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </Page>
   );
 }

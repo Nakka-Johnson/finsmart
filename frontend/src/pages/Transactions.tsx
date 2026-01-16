@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/store/auth';
 import { transactionApi, categoryApi, accountApi } from '@/api/endpoints';
 import type {
@@ -10,13 +11,16 @@ import type {
   ImportSuccessResponse,
   BulkActionResponse,
 } from '@/api/types';
-import { Card } from '@/components/Card';
+import { Card, CardContent, Button } from '@/ui';
+import { Page, PageHeader, PageContent } from '@/components/layout/Page';
 import { Loader } from '@/components/Loader';
 import { useToast } from '@/hooks/useToast';
 import { formatCurrency, formatDate } from '@/utils/format';
 import { MerchantChip } from '@/components/MerchantChip';
 import { CategoryPill } from '@/components/CategoryPill';
 import { WhyDrawer } from '@/components/WhyDrawer';
+import { Plus, Upload, InboxIcon } from 'lucide-react';
+import './Transactions.css';
 
 interface Filters {
   accountId?: string;
@@ -332,62 +336,51 @@ export function Transactions() {
     }
   };
 
+  const navigate = useNavigate();
+
   return (
-    <div className="transactions-page">
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '1.5rem',
-        }}
+    <Page>
+      <PageHeader
+        title="Transactions"
+        description="Manage and track your income and expenses"
       >
-        <h1>Transactions</h1>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button onClick={handleImportClick} className="btn btn-secondary">
-            Import CSV
-          </button>
-          <button onClick={handleAddClick} className="btn btn-primary">
-            Add Transaction
-          </button>
-        </div>
-      </div>
+        <Button variant="secondary" onClick={handleImportClick}>
+          <Upload className="h-4 w-4 mr-2" />
+          Import CSV
+        </Button>
+        <Button onClick={handleAddClick}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Transaction
+        </Button>
+      </PageHeader>
 
-      {/* Bulk Actions Toolbar */}
-      {selectedIds.size > 0 && (
-        <div
-          style={{
-            background: '#f0f7ff',
-            border: '1px solid #0066cc',
-            borderRadius: '4px',
-            padding: '1rem',
-            marginBottom: '1rem',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <span style={{ fontWeight: 500 }}>{selectedIds.size} transaction(s) selected</span>
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
-            <button
-              onClick={() => {
-                setRecategoriseTargetId(categories[0]?.id || '');
-                setShowRecategoriseModal(true);
-              }}
-              className="btn btn-secondary btn-small"
-            >
-              Recategorise
-            </button>
-            <button onClick={handleBulkDelete} className="btn btn-danger btn-small">
-              Delete Selected
-            </button>
+      <PageContent>
+        {/* Bulk Actions Toolbar */}
+        {selectedIds.size > 0 && (
+          <div className="mb-4 flex items-center justify-between bg-muted/50 rounded-lg px-4 py-3">
+            <span className="text-sm font-medium">{selectedIds.size} transaction(s) selected</span>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  setRecategoriseTargetId(categories[0]?.id || '');
+                  setShowRecategoriseModal(true);
+                }}
+              >
+                Recategorise
+              </Button>
+              <Button variant="destructive" size="sm" onClick={handleBulkDelete}>
+                Delete Selected
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      <Card>
-        <div className="filter-bar">
+        {/* Responsive Filter Bar */}
+        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:flex lg:flex-wrap lg:items-center lg:gap-3">
           <select
+            className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
             value={filters.accountId || ''}
             onChange={e => handleFilterChange('accountId', e.target.value)}
           >
@@ -400,6 +393,7 @@ export function Transactions() {
           </select>
 
           <select
+            className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
             value={filters.categoryId || ''}
             onChange={e => handleFilterChange('categoryId', e.target.value)}
           >
@@ -412,16 +406,18 @@ export function Transactions() {
           </select>
 
           <select
+            className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
             value={filters.direction || 'ALL'}
             onChange={e => handleFilterChange('direction', e.target.value)}
           >
-            <option value="ALL">All Directions</option>
+            <option value="ALL">All Types</option>
             <option value="IN">Income</option>
             <option value="OUT">Expense</option>
           </select>
 
           <input
             type="date"
+            className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
             placeholder="Start Date"
             value={filters.startDate || ''}
             onChange={e => handleFilterChange('startDate', e.target.value)}
@@ -429,38 +425,47 @@ export function Transactions() {
 
           <input
             type="date"
+            className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
             placeholder="End Date"
             value={filters.endDate || ''}
             onChange={e => handleFilterChange('endDate', e.target.value)}
           />
         </div>
 
-        {loading ? (
-          <Loader size="medium" />
-        ) : transactions.length === 0 ? (
-          <div style={{ 
-            textAlign: 'center', 
-            padding: '3rem 2rem',
-            color: '#666',
-          }}>
-            <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>📋</div>
-            <h3 style={{ margin: '0 0 0.5rem', color: '#374151' }}>No transactions found</h3>
-            <p style={{ margin: '0 0 1.5rem', maxWidth: '400px', marginInline: 'auto' }}>
-              {accounts.length === 0 
-                ? 'Create an account first, then import your transactions.'
-                : 'Import a CSV file or add transactions manually to get started.'
-              }
-            </p>
-            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
-              <button onClick={handleImportClick} className="btn btn-primary" disabled={accounts.length === 0}>
-                📁 Import CSV
-              </button>
-              <button onClick={handleAddClick} className="btn btn-secondary" disabled={accounts.length === 0}>
-                ➕ Add Manually
-              </button>
-            </div>
-          </div>
-        ) : (
+        {/* Main Content */}
+        <Card>
+          <CardContent className="p-0">
+            {loading ? (
+              <div className="flex items-center justify-center py-16">
+                <Loader size="medium" />
+              </div>
+            ) : transactions.length === 0 ? (
+              /* Improved Empty State */
+              <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                <div className="mb-4 rounded-full bg-muted p-3">
+                  <InboxIcon className="h-8 w-8 text-muted-foreground" />
+                </div>
+                <h3 className="text-lg font-semibold text-foreground">
+                  No transactions found
+                </h3>
+                <p className="mt-1 mb-6 max-w-sm text-sm text-muted-foreground">
+                  {accounts.length === 0 
+                    ? 'Create an account first, then import your transactions.'
+                    : 'Import a CSV file or add transactions manually to get started.'
+                  }
+                </p>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <Button onClick={() => navigate('/import')} disabled={accounts.length === 0}>
+                    <Upload className="mr-2 h-4 w-4" />
+                    Import CSV
+                  </Button>
+                  <Button variant="ghost" onClick={handleAddClick} disabled={accounts.length === 0}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Manually
+                  </Button>
+                </div>
+              </div>
+            ) : (
           <>
             <table className="data-table">
               <thead>
@@ -514,17 +519,18 @@ export function Transactions() {
                         />
                       </td>
                       <td>
-                        <div style={{ display: 'flex', gap: '0.5rem' }}>
-                          <button onClick={() => handleEditClick(t)} className="btn btn-small" aria-label="Edit transaction">
+                        <div className="transactions-page__row-actions">
+                          <Button size="sm" variant="secondary" onClick={() => handleEditClick(t)} aria-label="Edit transaction">
                             Edit
-                          </button>
-                          <button
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
                             onClick={() => handleDelete(t.id)}
-                            className="btn btn-small btn-danger"
                             aria-label="Delete transaction"
                           >
                             Delete
-                          </button>
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -535,27 +541,30 @@ export function Transactions() {
 
             {totalPages > 1 && (
               <div className="pagination">
-                <button
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={() => setPage(p => Math.max(0, p - 1))}
                   disabled={page === 0}
-                  className="btn btn-secondary btn-small"
                 >
                   Previous
-                </button>
+                </Button>
                 <span>
                   Page {page + 1} of {totalPages}
                 </span>
-                <button
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
                   disabled={page >= totalPages - 1}
-                  className="btn btn-secondary btn-small"
                 >
                   Next
-                </button>
+                </Button>
               </div>
             )}
           </>
         )}
+          </CardContent>
       </Card>
 
       {showModal && (
@@ -916,6 +925,7 @@ export function Transactions() {
         currentValue={whyDrawer.currentValue}
         confidence={whyDrawer.confidence}
       />
-    </div>
+      </PageContent>
+    </Page>
   );
 }

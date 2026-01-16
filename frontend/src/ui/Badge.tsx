@@ -4,19 +4,22 @@ import { clsx } from '../utils/clsx';
 import './Badge.css';
 
 export interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
-  variant?: 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'info';
+  variant?: 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'info' | 'destructive' | 'secondary';
   size?: 'sm' | 'md' | 'lg';
   dot?: boolean;
 }
 
 export const Badge = forwardRef<HTMLSpanElement, BadgeProps>(
   ({ variant = 'default', size = 'md', dot = false, className, children, ...props }, ref) => {
+    // Map new variant names to old ones
+    const mappedVariant = variant === 'destructive' ? 'danger' : variant === 'secondary' ? 'default' : variant;
+    
     return (
       <span
         ref={ref}
         className={clsx(
           'ui-badge',
-          `ui-badge--${variant}`,
+          `ui-badge--${mappedVariant}`,
           `ui-badge--${size}`,
           dot && 'ui-badge--dot',
           className

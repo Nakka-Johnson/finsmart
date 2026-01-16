@@ -8,19 +8,29 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import {
+  TrendingUp,
+  TrendingDown,
+  CreditCard,
+  Wallet,
+  BarChart3,
+  PieChart,
+  Sparkles,
+} from 'lucide-react';
+import {
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
-  Skeleton,
+  PageHeader,
   Badge,
-} from '../ui';
+  Skeleton,
+} from '@/components/ui';
 import { CashRunwayWidget, NarrativeCard, AnomalyInbox } from '../components/widgets';
 import { useAuthStore } from '../store/auth';
 import { transactionApi } from '../api/endpoints';
 import type { InsightResponse } from '../api/types';
-import './DashboardV2.css';
+import { cn } from '@/lib/utils';
 
 interface QuickStats {
   totalDebit: number;
@@ -34,15 +44,6 @@ interface CategorySpend {
   amount: number;
   percentage: number;
 }
-
-const CATEGORY_COLORS = [
-  'var(--color-blue-500)',
-  'var(--color-emerald-500)',
-  'var(--color-amber-500)',
-  'var(--color-violet-500)',
-  'var(--color-rose-500)',
-  'var(--color-slate-500)',
-];
 
 export function DashboardV2() {
   const [stats, setStats] = useState<QuickStats>({
@@ -169,127 +170,164 @@ export function DashboardV2() {
   const netFlow = stats.totalCredit - stats.totalDebit;
   const savingsRate = stats.totalCredit > 0 ? (netFlow / stats.totalCredit) * 100 : 0;
 
+  // Category bar colors using Tailwind-compatible classes
+  const categoryColors = [
+    'bg-blue-500',
+    'bg-emerald-500',
+    'bg-amber-500',
+    'bg-violet-500',
+    'bg-rose-500',
+    'bg-slate-500',
+  ];
+
   return (
-    <div className="dashboard-v2">
-      <div className="dashboard-v2__header">
-        <div>
-          <h1 className="dashboard-v2__title">Dashboard</h1>
-          <p className="dashboard-v2__subtitle">Your financial overview at a glance</p>
-        </div>
-        <div className="dashboard-v2__period">
-          <Badge variant="default" size="md">
-            Last 30 days
-          </Badge>
-        </div>
-      </div>
+    <div className="flex flex-col gap-6">
+      {/* Header */}
+      <PageHeader
+        title="Dashboard"
+        description="Your financial overview at a glance"
+      >
+        <Badge variant="secondary">Last 30 days</Badge>
+      </PageHeader>
 
       {/* Hero Widgets Row */}
-      <div className="dashboard-v2__hero-grid">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         <CashRunwayWidget />
         <NarrativeCard />
-        <AnomalyInbox />
+        <div className="md:col-span-2 xl:col-span-1">
+          <AnomalyInbox />
+        </div>
       </div>
 
       {/* Quick Stats */}
-      <div className="dashboard-v2__stats-grid">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* Total Spending */}
         <Card>
-          <CardContent className="dashboard-v2__stat-card">
-            {stats.loading ? (
-              <Skeleton width={120} height={32} />
-            ) : (
-              <>
-                <span className="dashboard-v2__stat-label">Total Spending</span>
-                <span className="dashboard-v2__stat-value dashboard-v2__stat-value--negative">
-                  {formatCurrency(stats.totalDebit)}
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Total Spending
                 </span>
-                <span className="dashboard-v2__stat-meta">
+                {stats.loading ? (
+                  <Skeleton className="h-8 w-28" />
+                ) : (
+                  <span className="text-2xl font-bold text-destructive tabular-nums">
+                    {formatCurrency(stats.totalDebit)}
+                  </span>
+                )}
+                <span className="text-xs text-muted-foreground">
                   {stats.transactionCount} transactions
                 </span>
-              </>
-            )}
+              </div>
+              <div className="h-10 w-10 rounded-full bg-destructive/10 flex items-center justify-center">
+                <CreditCard className="h-5 w-5 text-destructive" />
+              </div>
+            </div>
           </CardContent>
         </Card>
 
+        {/* Total Income */}
         <Card>
-          <CardContent className="dashboard-v2__stat-card">
-            {stats.loading ? (
-              <Skeleton width={120} height={32} />
-            ) : (
-              <>
-                <span className="dashboard-v2__stat-label">Total Income</span>
-                <span className="dashboard-v2__stat-value dashboard-v2__stat-value--positive">
-                  {formatCurrency(stats.totalCredit)}
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Total Income
                 </span>
-                <span className="dashboard-v2__stat-meta">This month</span>
-              </>
-            )}
+                {stats.loading ? (
+                  <Skeleton className="h-8 w-28" />
+                ) : (
+                  <span className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+                    {formatCurrency(stats.totalCredit)}
+                  </span>
+                )}
+                <span className="text-xs text-muted-foreground">This month</span>
+              </div>
+              <div className="h-10 w-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                <Wallet className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              </div>
+            </div>
           </CardContent>
         </Card>
 
+        {/* Net Flow */}
         <Card>
-          <CardContent className="dashboard-v2__stat-card">
-            {stats.loading ? (
-              <Skeleton width={120} height={32} />
-            ) : (
-              <>
-                <span className="dashboard-v2__stat-label">Net Flow</span>
-                <span
-                  className={`dashboard-v2__stat-value ${netFlow >= 0 ? 'dashboard-v2__stat-value--positive' : 'dashboard-v2__stat-value--negative'}`}
-                >
-                  {netFlow >= 0 ? '+' : ''}
-                  {formatCurrency(netFlow)}
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Net Flow
                 </span>
-                <span className="dashboard-v2__stat-meta">
+                {stats.loading ? (
+                  <Skeleton className="h-8 w-28" />
+                ) : (
+                  <span
+                    className={cn(
+                      'text-2xl font-bold tabular-nums',
+                      netFlow >= 0
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : 'text-destructive'
+                    )}
+                  >
+                    {netFlow >= 0 ? '+' : ''}
+                    {formatCurrency(netFlow)}
+                  </span>
+                )}
+                <span className="text-xs text-muted-foreground">
                   {savingsRate > 0 ? `${savingsRate.toFixed(0)}% savings rate` : 'Deficit'}
                 </span>
-              </>
-            )}
+              </div>
+              <div
+                className={cn(
+                  'h-10 w-10 rounded-full flex items-center justify-center',
+                  netFlow >= 0 ? 'bg-emerald-500/10' : 'bg-destructive/10'
+                )}
+              >
+                {netFlow >= 0 ? (
+                  <TrendingUp className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+                ) : (
+                  <TrendingDown className="h-5 w-5 text-destructive" />
+                )}
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
 
       {/* Charts Row */}
-      <div className="dashboard-v2__charts-grid">
-        {/* Spending Trend */}
-        <Card className="dashboard-v2__chart-card">
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        {/* Spending Trend - wider */}
+        <Card className="lg:col-span-3 min-h-[360px]">
           <CardHeader>
-            <CardTitle>
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              >
-                <path d="M2 15l4-4 4 3 8-10" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="h-5 w-5 text-muted-foreground" />
               Cash Flow Trend
             </CardTitle>
             <CardDescription>Income vs spending over 6 months</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="dashboard-v2__chart">
+            <div className="-mx-4">
               <ResponsiveContainer width="100%" height={240}>
                 <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--color-positive)" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="var(--color-positive)" stopOpacity={0} />
+                      <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0} />
                     </linearGradient>
                     <linearGradient id="spendingGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--color-danger)" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="var(--color-danger)" stopOpacity={0} />
+                      <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0} />
                     </linearGradient>
                   </defs>
                   <XAxis
                     dataKey="month"
-                    tick={{ fontSize: 12, fill: 'var(--color-text-tertiary)' }}
+                    tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
                     tickLine={false}
                     axisLine={false}
                   />
                   <YAxis
-                    tick={{ fontSize: 12, fill: 'var(--color-text-tertiary)' }}
+                    tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
                     tickLine={false}
                     axisLine={false}
                     tickFormatter={(val) => `£${(val / 1000).toFixed(0)}k`}
@@ -297,18 +335,18 @@ export function DashboardV2() {
                   />
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: 'var(--color-bg-elevated)',
-                      border: '1px solid var(--color-border)',
-                      borderRadius: 'var(--radius-md)',
-                      fontSize: 'var(--text-sm)',
+                      backgroundColor: 'hsl(var(--popover))',
+                      border: '1px solid hsl(var(--border))',
+                      borderRadius: '8px',
+                      fontSize: '14px',
                     }}
-                    formatter={(value: number) => [formatCurrency(value)]}
+                    formatter={(value) => [formatCurrency(value as number)]}
                   />
                   <Area
                     type="monotone"
                     dataKey="income"
                     name="Income"
-                    stroke="var(--color-positive)"
+                    stroke="hsl(var(--chart-2))"
                     strokeWidth={2}
                     fill="url(#incomeGradient)"
                   />
@@ -316,7 +354,7 @@ export function DashboardV2() {
                     type="monotone"
                     dataKey="spending"
                     name="Spending"
-                    stroke="var(--color-danger)"
+                    stroke="hsl(var(--destructive))"
                     strokeWidth={2}
                     fill="url(#spendingGradient)"
                   />
@@ -327,52 +365,40 @@ export function DashboardV2() {
         </Card>
 
         {/* Spending by Category */}
-        <Card className="dashboard-v2__chart-card">
+        <Card className="lg:col-span-2 min-h-[360px]">
           <CardHeader>
-            <CardTitle>
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              >
-                <circle cx="10" cy="10" r="8" />
-                <path d="M10 2a8 8 0 0 1 8 8" />
-              </svg>
+            <CardTitle className="flex items-center gap-2">
+              <PieChart className="h-5 w-5 text-muted-foreground" />
               Spending by Category
             </CardTitle>
             <CardDescription>Where your money goes</CardDescription>
           </CardHeader>
           <CardContent>
             {spendByCategory.length === 0 ? (
-              <div className="dashboard-v2__chart-empty">
+              <div className="flex items-center justify-center h-48 text-muted-foreground">
                 <p>No spending data available</p>
               </div>
             ) : (
-              <div className="dashboard-v2__category-chart">
-                <div className="dashboard-v2__category-bars">
-                  {spendByCategory.map((cat, index) => (
-                    <div key={cat.category} className="dashboard-v2__category-row">
-                      <div className="dashboard-v2__category-info">
-                        <span className="dashboard-v2__category-name">{cat.category}</span>
-                        <span className="dashboard-v2__category-amount">
-                          {formatCurrency(cat.amount)}
-                        </span>
-                      </div>
-                      <div className="dashboard-v2__category-bar-bg">
-                        <div
-                          className="dashboard-v2__category-bar"
-                          style={{
-                            width: `${cat.percentage}%`,
-                            backgroundColor: CATEGORY_COLORS[index % CATEGORY_COLORS.length],
-                          }}
-                        />
-                      </div>
+              <div className="flex flex-col gap-3">
+                {spendByCategory.map((cat, index) => (
+                  <div key={cat.category} className="flex flex-col gap-1.5">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">{cat.category}</span>
+                      <span className="text-sm text-muted-foreground tabular-nums">
+                        {formatCurrency(cat.amount)}
+                      </span>
                     </div>
-                  ))}
-                </div>
+                    <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                      <div
+                        className={cn(
+                          'h-full rounded-full transition-all duration-500',
+                          categoryColors[index % categoryColors.length]
+                        )}
+                        style={{ width: `${cat.percentage}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>
@@ -381,26 +407,15 @@ export function DashboardV2() {
 
       {/* AI Insight */}
       {insight && (
-        <Card className="dashboard-v2__insight-card">
+        <Card className="bg-gradient-to-br from-primary/5 to-background border-primary/20">
           <CardHeader>
-            <CardTitle>
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              >
-                <path d="M10 2a8 8 0 1 0 8 8" strokeLinecap="round" />
-                <path d="M10 6v4l3 2" strokeLinecap="round" strokeLinejoin="round" />
-                <circle cx="15" cy="5" r="3" fill="var(--color-primary)" stroke="none" />
-              </svg>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
               AI Financial Summary
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="dashboard-v2__insight-text">{insight.summary}</p>
+            <p className="text-muted-foreground leading-relaxed">{insight.summary}</p>
           </CardContent>
         </Card>
       )}

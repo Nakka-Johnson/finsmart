@@ -1,0 +1,116 @@
+/**
+ * Budgets Page Styles - Premium Edition
+ */
+
+/* ============================================================================
+ * Filter Controls
+ * ========================================================================= */
+
+.budgets-page__select,
+.budgets-page__year-input {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.budgets-page__select:focus,
+.budgets-page__year-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-focus-ring);
+}
+
+.budgets-page__year-input {
+  width: 100px;
+}
+
+/* ============================================================================
+ * Summary Section
+ * ========================================================================= */
+
+.budgets-page__summary {
+  margin-bottom: var(--space-8);
+}
+
+.budgets-page__section-title {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  color: var(--color-text);
+  margin: 0 0 var(--space-4) 0;
+}
+
+.budgets-page__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: var(--space-4);
+}
+
+.budgets-page__card {
+  transition: box-shadow 0.2s ease;
+}
+
+.budgets-page__card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+.budgets-page__card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.budgets-page__card-header strong {
+  font-size: var(--font-size-base);
+  color: var(--color-text);
+}
+
+.budgets-page__amounts {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-variant-numeric: tabular-nums;
+  margin-bottom: var(--space-2);
+}
+
+.budgets-page__progress {
+  height: 8px;
+  background: var(--color-surface-raised);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.budgets-page__progress-bar {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width 0.5s ease-out;
+}
+
+.budgets-page__over-budget {
+  margin-top: var(--space-2);
+  font-size: var(--font-size-xs);
+  color: var(--color-destructive);
+  font-weight: 500;
+}
+
+/* ============================================================================
+ * Actions
+ * ========================================================================= */
+
+.budgets-page__actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* ============================================================================
+ * Responsive
+ * ========================================================================= */
+
+@media (max-width: 640px) {
+  .budgets-page__grid {
+    grid-template-columns: 1fr;
+  }
+}

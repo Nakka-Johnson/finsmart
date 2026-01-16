@@ -1,5 +1,5 @@
 /**
- * Dashboard - Truthful UI Pass
+ * Dashboard - Premium UI with truthful data
  * 
  * Shows real data from the insights summary API.
  * Displays proper empty states when no data exists.
@@ -7,8 +7,19 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Card } from '@/components/Card';
-import { Loader } from '@/components/Loader';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  Button,
+  Select,
+  Badge,
+  Skeleton,
+  SkeletonChart,
+} from '@/ui';
+import { EmptyState } from '@/ui/EmptyState';
+import { Page, PageHeader, PageContent } from '@/components/layout/Page';
 import { useToast } from '@/hooks/useToast';
 import { useAuthStore } from '@/store/auth';
 import { insightApi, demoApi } from '@/api/endpoints';
@@ -100,107 +111,250 @@ export function Dashboard() {
   // Check if we have data
   const hasData = summary && summary.transactionCount > 0;
 
-  // Format currency for tooltips
-  const formatTooltipValue = (value: number) => currencyGBP(value);
+  // Date range options
+  const rangeOptions = [
+    { value: 'LAST_30_DAYS', label: 'Last 30 Days' },
+    { value: 'LAST_6_MONTHS', label: 'Last 6 Months' },
+  ];
 
   return (
-    <div className="dashboard">
-      <header className="dashboard-header">
-        <h1>Dashboard</h1>
-        <div className="dashboard-health">
-          <div className={`status-chip status-${health.backend.toLowerCase()}`}>
-            Backend: {health.backend}
-          </div>
-          <div className={`status-chip status-${health.ai.toLowerCase()}`}>
-            AI: {health.ai}
-          </div>
-        </div>
-      </header>
-
-      {/* Date range selector */}
-      <div className="dashboard-controls">
-        <select
-          value={range}
-          onChange={e => setRange(e.target.value as DateRange)}
-          className="range-select"
+    <Page>
+      <PageHeader
+        title="Dashboard"
+        description="Your financial overview"
+      >
+        <Badge
+          variant={health.backend === 'UP' ? 'default' : health.backend === 'DOWN' ? 'destructive' : 'secondary'}
         >
-          <option value="LAST_30_DAYS">Last 30 Days</option>
-          <option value="LAST_6_MONTHS">Last 6 Months</option>
-        </select>
-        <button onClick={loadSummary} className="btn btn-secondary" disabled={loading}>
-          Refresh
-        </button>
-      </div>
+          Backend: {health.backend}
+        </Badge>
+        <Badge
+          variant={health.ai === 'UP' ? 'default' : health.ai === 'DOWN' ? 'destructive' : 'secondary'}
+        >
+          AI: {health.ai}
+        </Badge>
+      </PageHeader>
 
-      {loading ? (
-        <div className="dashboard-loading">
-          <Loader size="large" />
-          <p>Loading your financial data...</p>
+      <PageContent>
+        {/* Controls */}
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <Select
+            value={range}
+            onChange={e => setRange(e.target.value as DateRange)}
+            options={rangeOptions}
+            size="sm"
+            aria-label="Select date range"
+          />
+          <Button variant="secondary" size="sm" onClick={loadSummary} disabled={loading}>
+            Refresh
+          </Button>
         </div>
-      ) : !hasData ? (
-        /* Empty state with CTAs */
-        <EmptyState
-          onSeedDemo={handleSeedDemo}
-          seedingDemo={seedingDemo}
-        />
-      ) : (
-        /* Dashboard with real data */
-        <>
-          {/* Summary cards */}
-          <div className="dashboard-stats">
-            <Card className="stat-card">
-              <div className="stat-label">Current Balance</div>
-              <div className="stat-value balance">
-                {currencyGBP(summary.currentBalance)}
-              </div>
-            </Card>
-            <Card className="stat-card">
-              <div className="stat-label">Income</div>
-              <div className="stat-value income">
-                {currencyGBP(summary.totalIncome)}
-              </div>
-            </Card>
-            <Card className="stat-card">
-              <div className="stat-label">Spending</div>
-              <div className="stat-value spending">
-                {currencyGBP(summary.totalSpending)}
-              </div>
-            </Card>
-            <Card className="stat-card">
-              <div className="stat-label">Net Flow</div>
-              <div className={`stat-value ${summary.netFlow >= 0 ? 'income' : 'spending'}`}>
-                {currencyGBP(summary.netFlow)}
-              </div>
-            </Card>
-          </div>
 
-          {/* Change narratives */}
-          {summary.changeNarrative.length > 0 && (
-            <Card title="Insights" className="narratives-card">
-              <ul className="narratives-list">
-                {summary.changeNarrative.map((item, idx) => (
-                  <li key={idx} className="narrative-item">
-                    <span className="narrative-label">{item.label}:</span>
-                    <span className="narrative-note">{item.note}</span>
+        {loading ? (
+          <DashboardSkeleton />
+        ) : !hasData ? (
+          <DashboardEmptyState onSeedDemo={handleSeedDemo} seedingDemo={seedingDemo} />
+        ) : (
+          <DashboardContent summary={summary!} />
+        )}
+      </PageContent>
+    </Page>
+  );
+}
+
+/**
+ * Dashboard loading skeleton
+ */
+function DashboardSkeleton() {
+  return (
+    <div className="dashboard__skeleton">
+      {/* Hero cards skeleton */}
+      <div className="dashboard__hero-grid">
+        {[1, 2, 3].map(i => (
+          <Card key={i}>
+            <CardContent>
+              <Skeleton width="40%" height={14} style={{ marginBottom: 8 }} />
+              <Skeleton width="60%" height={32} style={{ marginBottom: 16 }} />
+              <SkeletonChart height={120} />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+      {/* Charts skeleton */}
+      <div className="dashboard__charts-grid">
+        <Card>
+          <CardHeader>
+            <Skeleton width={160} height={20} />
+          </CardHeader>
+          <CardContent>
+            <SkeletonChart height={280} />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <Skeleton width={160} height={20} />
+          </CardHeader>
+          <CardContent>
+            <SkeletonChart height={280} />
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Dashboard empty state with CTAs
+ */
+function DashboardEmptyState({
+  onSeedDemo,
+  seedingDemo,
+}: {
+  onSeedDemo: () => void;
+  seedingDemo: boolean;
+}) {
+  const navigate = useNavigate();
+
+  return (
+    <EmptyState
+      icon="📊"
+      title="No transactions yet"
+      description="Import your transactions or load demo data to see your financial insights and track your spending."
+      actions={[
+        {
+          label: '📁 Import CSV',
+          onClick: () => navigate('/import'),
+          variant: 'primary',
+        },
+        {
+          label: seedingDemo ? 'Loading...' : '🎭 Load Demo Data',
+          onClick: onSeedDemo,
+          variant: 'secondary',
+        },
+      ]}
+    />
+  );
+}
+
+/**
+ * Dashboard content when data exists
+ */
+function DashboardContent({
+  summary,
+}: {
+  summary: InsightsSummaryResponse;
+}) {
+  return (
+    <>
+      {/* Hero Stats Row */}
+      <div className="dashboard__hero-grid">
+        {/* Cash Runway Card */}
+        <Card className="dashboard__hero-card">
+          <CardHeader>
+            <CardTitle>Cash Position</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="hero-stat">
+              <span className="hero-stat__value">{currencyGBP(summary.currentBalance)}</span>
+              <span className="hero-stat__label">Current Balance</span>
+            </div>
+            <div className="hero-stat__row">
+              <div className="hero-stat__item">
+                <span className="hero-stat__item-value text-success">{currencyGBP(summary.totalIncome)}</span>
+                <span className="hero-stat__item-label">Income</span>
+              </div>
+              <div className="hero-stat__item">
+                <span className="hero-stat__item-value text-danger">{currencyGBP(summary.totalSpending)}</span>
+                <span className="hero-stat__item-label">Spending</span>
+              </div>
+              <div className="hero-stat__item">
+                <span className={`hero-stat__item-value ${summary.netFlow >= 0 ? 'text-success' : 'text-danger'}`}>
+                  {currencyGBP(summary.netFlow)}
+                </span>
+                <span className="hero-stat__item-label">Net Flow</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* What Changed Card */}
+        <Card className="dashboard__hero-card">
+          <CardHeader>
+            <CardTitle>What Changed</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {summary.changeNarrative.length > 0 ? (
+              <ul className="change-list">
+                {summary.changeNarrative.slice(0, 4).map((item, idx) => (
+                  <li key={idx} className="change-list__item">
+                    <span className="change-list__label">{item.label}</span>
+                    <span className="change-list__note">{item.note}</span>
                   </li>
                 ))}
               </ul>
-            </Card>
-          )}
+            ) : (
+              <p className="text-muted text-sm">No significant changes this period.</p>
+            )}
+          </CardContent>
+        </Card>
 
-          <div className="dashboard-grid">
-            {/* Spending by category */}
-            {summary.spendByCategory.length > 0 && (
-              <Card title="Spending by Category" className="chart-card">
-                <ResponsiveContainer width="100%" height={250}>
+        {/* Anomaly Inbox Card */}
+        <Card className="dashboard__hero-card">
+          <CardHeader>
+            <CardTitle>
+              Flagged Transactions
+              {summary.anomaliesPreview.length > 0 && (
+                <Badge variant="danger" size="sm" style={{ marginLeft: 8 }}>
+                  {summary.anomaliesPreview.length}
+                </Badge>
+              )}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {summary.anomaliesPreview.length > 0 ? (
+              <ul className="anomaly-list">
+                {summary.anomaliesPreview.slice(0, 3).map((a, idx) => (
+                  <li key={idx} className="anomaly-list__item">
+                    <span className="anomaly-list__merchant">{a.merchantName}</span>
+                    <span className="anomaly-list__amount">{currencyGBP(a.amount)}</span>
+                    <Badge
+                      variant={a.score >= 0.9 ? 'danger' : a.score >= 0.8 ? 'warning' : 'default'}
+                      size="sm"
+                    >
+                      {Math.round(a.score * 100)}%
+                    </Badge>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-muted text-sm">No anomalies detected. 🎉</p>
+            )}
+            <Link to="/insights" className="dashboard__view-all">
+              View all →
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Charts Row */}
+      <div className="dashboard__charts-grid">
+        {/* Spending by Category */}
+        {summary.spendByCategory.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Spending by Category</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="chart-container">
+                <ResponsiveContainer width="100%" height="100%">
                   <BarChart
                     data={summary.spendByCategory}
                     layout="vertical"
-                    margin={{ left: 80, right: 20 }}
+                    margin={{ left: 80, right: 16, top: 8, bottom: 8 }}
                   >
                     <XAxis type="number" tickFormatter={v => currencyGBP(v)} />
                     <YAxis type="category" dataKey="name" width={80} />
-                    <Tooltip formatter={formatTooltipValue} />
+                    <Tooltip formatter={(value) => currencyGBP(value as number)} />
                     <Bar dataKey="total" radius={[0, 4, 4, 0]}>
                       {summary.spendByCategory.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color || '#3b82f6'} />
@@ -208,108 +362,51 @@ export function Dashboard() {
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
-              </Card>
-            )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-            {/* Top merchants */}
-            {summary.topMerchants.length > 0 && (
-              <Card title="Top Merchants" className="merchants-card">
-                <table className="merchants-table">
-                  <thead>
-                    <tr>
-                      <th>Merchant</th>
-                      <th>Total</th>
-                      <th>Txns</th>
+        {/* Top Merchants */}
+        {summary.topMerchants.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Top Merchants</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <table className="dashboard__merchants-table">
+                <thead>
+                  <tr>
+                    <th>Merchant</th>
+                    <th className="text-right">Total</th>
+                    <th className="text-right">Txns</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {summary.topMerchants.slice(0, 5).map((m, idx) => (
+                    <tr key={idx}>
+                      <td className="truncate">{m.merchantName}</td>
+                      <td className="text-right tabular-nums font-medium">{currencyGBP(m.total)}</td>
+                      <td className="text-right tabular-nums text-muted">{m.txCount}</td>
                     </tr>
-                  </thead>
-                  <tbody>
-                    {summary.topMerchants.slice(0, 5).map((m, idx) => (
-                      <tr key={idx}>
-                        <td>{m.merchantName}</td>
-                        <td className="amount">{currencyGBP(m.total)}</td>
-                        <td className="count">{m.txCount}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                <Link to="/insights" className="view-all-link">
-                  View all merchants →
-                </Link>
-              </Card>
-            )}
-          </div>
-
-          {/* Anomalies preview */}
-          {summary.anomaliesPreview.length > 0 && (
-            <Card title="Flagged Transactions" className="anomalies-card">
-              <ul className="anomalies-list">
-                {summary.anomaliesPreview.map((a, idx) => (
-                  <li key={idx} className="anomaly-item">
-                    <div className="anomaly-merchant">{a.merchantName}</div>
-                    <div className="anomaly-amount">{currencyGBP(a.amount)}</div>
-                    <div className="anomaly-reason">{a.reason}</div>
-                    <div className={`anomaly-score score-${a.score >= 0.9 ? 'high' : a.score >= 0.8 ? 'medium' : 'low'}`}>
-                      {(a.score * 100).toFixed(0)}%
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            </Card>
-          )}
-
-          {/* Transaction count footer */}
-          <div className="dashboard-footer">
-            <span className="tx-count">
-              Based on {summary.transactionCount} transactions from{' '}
-              {formatDate(summary.periodStart)} to {formatDate(summary.periodEnd)}
-            </span>
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-/**
- * Empty state component with CTAs
- */
-function EmptyState({ 
-  onSeedDemo, 
-  seedingDemo 
-}: { 
-  onSeedDemo: () => void; 
-  seedingDemo: boolean;
-}) {
-  const navigate = useNavigate();
-
-  return (
-    <div className="dashboard-empty">
-      <div className="empty-icon">📊</div>
-      <h2>No transactions yet</h2>
-      <p>Import your transactions or load demo data to see your financial insights.</p>
-      
-      <div className="empty-actions">
-        <button 
-          className="btn btn-primary"
-          onClick={() => navigate('/import')}
-        >
-          📁 Import CSV
-        </button>
-        <button 
-          className="btn btn-secondary"
-          onClick={onSeedDemo}
-          disabled={seedingDemo}
-        >
-          {seedingDemo ? 'Loading...' : '🎭 Load Demo Data'}
-        </button>
+                  ))}
+                </tbody>
+              </table>
+              <Link to="/insights" className="dashboard__view-all">
+                View all merchants →
+              </Link>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
-      <div className="empty-hint">
-        <p>
-          Demo data includes 12 months of UK-style transactions with realistic merchants
-          like Tesco, Sainsbury's, Uber, and Netflix.
-        </p>
-      </div>
-    </div>
+      {/* Footer */}
+      <footer className="dashboard__footer">
+        <span className="text-sm text-muted">
+          Based on {summary.transactionCount} transactions from{' '}
+          {formatDate(summary.periodStart)} to {formatDate(summary.periodEnd)}
+        </span>
+      </footer>
+    </>
   );
 }

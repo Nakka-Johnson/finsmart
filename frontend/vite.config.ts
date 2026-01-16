@@ -13,4 +13,24 @@ export default defineConfig({
   server: {
     port: 5173,
   },
+  optimizeDeps: {
+    include: ['tslib'],
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.ts'],
+    include: ['src/**/*.test.{ts,tsx}'],
+  },
+  build: {
+    rollupOptions: {
+      onwarn(warning, warn) {
+        // Suppress the tslib resolution warning from react-remove-scroll
+        if (warning.code === 'UNRESOLVED_IMPORT' && warning.exporter?.includes('tslib')) {
+          return;
+        }
+        warn(warning);
+      },
+    },
+  },
 })

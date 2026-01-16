@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardHeader, CardTitle, CardContent, Skeleton, Badge, Button } from '../../ui';
+import { AlertTriangle, ChevronRight, CheckCircle } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent, Skeleton, Badge, Button } from '@/components/ui';
 import { getRecentAnomalies, type AnomalyScore } from '../../api/ai';
 import { useAuthStore } from '../../store/auth';
-import './AnomalyInbox.css';
 
 interface AnomalyWithDetails extends AnomalyScore {
   description?: string;
@@ -72,10 +72,10 @@ export function AnomalyInbox() {
     }).format(Math.abs(value));
   };
 
-  const getScoreVariant = (score: number) => {
-    if (score >= 0.9) return 'danger';
-    if (score >= 0.7) return 'warning';
-    return 'default';
+  const getScoreVariant = (score: number): 'default' | 'secondary' | 'destructive' | 'outline' => {
+    if (score >= 0.9) return 'destructive';
+    if (score >= 0.7) return 'secondary';
+    return 'outline';
   };
 
   const handleViewAll = () => {
@@ -84,20 +84,23 @@ export function AnomalyInbox() {
 
   if (loading) {
     return (
-      <Card className="anomaly-inbox">
+      <Card className="h-full">
         <CardHeader>
-          <CardTitle>Anomaly Inbox</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-muted-foreground" />
+            Anomaly Inbox
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="anomaly-inbox__skeleton">
+          <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="anomaly-inbox__skeleton-item">
-                <Skeleton variant="circular" width={32} height={32} />
-                <div style={{ flex: 1 }}>
-                  <Skeleton width="60%" height={16} />
-                  <Skeleton width="40%" height={14} />
+              <div key={i} className="flex items-center gap-3">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <div className="flex-1 space-y-1">
+                  <Skeleton className="h-4 w-[60%]" />
+                  <Skeleton className="h-3 w-[40%]" />
                 </div>
-                <Skeleton width={60} height={24} />
+                <Skeleton className="h-6 w-14" />
               </div>
             ))}
           </div>
@@ -107,73 +110,71 @@ export function AnomalyInbox() {
   }
 
   return (
-    <Card className="anomaly-inbox">
-      <CardHeader>
-        <CardTitle>
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M10 6v4M10 14h.01" strokeLinecap="round" />
-            <path d="M8.57 3.31L2.23 14.34a1.5 1.5 0 0 0 1.29 2.25h12.96a1.5 1.5 0 0 0 1.29-2.25L11.43 3.31a1.5 1.5 0 0 0-2.86 0z" />
-          </svg>
+    <Card className="h-full flex flex-col">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="flex items-center gap-2">
+          <AlertTriangle className="h-5 w-5 text-amber-500" />
           Anomaly Inbox
-          {anomalies.length > 0 && (
-            <Badge variant="danger" size="sm">
-              {anomalies.length}
-            </Badge>
-          )}
         </CardTitle>
+        {anomalies.length > 0 && (
+          <Badge variant="destructive">{anomalies.length}</Badge>
+        )}
       </CardHeader>
-      <CardContent className="anomaly-inbox__content">
+      <CardContent className="flex-1 flex flex-col">
         {anomalies.length === 0 ? (
-          <div className="anomaly-inbox__empty">
-            <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <circle cx="20" cy="20" r="15" />
-              <path d="M15 20l3 3 7-7" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <p>No anomalies detected</p>
-            <span>Your recent transactions look normal</span>
+          <div className="flex-1 flex flex-col items-center justify-center text-center py-8">
+            <div className="h-12 w-12 rounded-full bg-emerald-500/10 flex items-center justify-center mb-3">
+              <CheckCircle className="h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <p className="font-medium text-foreground">No anomalies detected</p>
+            <span className="text-sm text-muted-foreground mt-1">
+              Your recent transactions look normal
+            </span>
           </div>
         ) : (
           <>
-            <ul className="anomaly-inbox__list">
+            <ul className="space-y-3 flex-1">
               {anomalies.map((anomaly) => (
-                <li key={anomaly.transactionId} className="anomaly-inbox__item">
-                  <div className="anomaly-inbox__item-icon">
-                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <path d="M8 5v3M8 11h.01" strokeLinecap="round" />
-                      <path d="M6.86 2.65L1.78 11.47a1.2 1.2 0 0 0 1.03 1.8h10.38a1.2 1.2 0 0 0 1.03-1.8L9.14 2.65a1.2 1.2 0 0 0-2.28 0z" />
-                    </svg>
+                <li
+                  key={anomaly.transactionId}
+                  className="flex items-center gap-3 p-2 -mx-2 rounded-md hover:bg-muted/50 transition-colors"
+                >
+                  <div className="h-8 w-8 rounded-full bg-amber-500/10 flex items-center justify-center flex-shrink-0">
+                    <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                   </div>
-                  <div className="anomaly-inbox__item-content">
-                    <span className="anomaly-inbox__item-merchant">
+                  <div className="flex-1 min-w-0">
+                    <span className="block text-sm font-medium truncate">
                       {anomaly.description || `Transaction #${anomaly.transactionId}`}
                     </span>
-                    <span className="anomaly-inbox__item-reason">{anomaly.reason}</span>
+                    <span className="text-xs text-muted-foreground">{anomaly.reason}</span>
                   </div>
-                  <div className="anomaly-inbox__item-meta">
+                  <div className="flex flex-col items-end gap-1">
                     {anomaly.amount && (
-                      <span className="anomaly-inbox__item-amount">
+                      <span className="text-sm font-medium tabular-nums">
                         {formatCurrency(anomaly.amount)}
                       </span>
                     )}
-                    <Badge variant={getScoreVariant(anomaly.score)} size="sm">
+                    <Badge variant={getScoreVariant(anomaly.score)} className="text-xs">
                       {Math.round(anomaly.score * 100)}%
                     </Badge>
                   </div>
                 </li>
               ))}
             </ul>
-            <div className="anomaly-inbox__footer">
-              <Button variant="ghost" size="sm" onClick={handleViewAll}>
+            <div className="pt-3 border-t mt-auto">
+              <Button variant="ghost" size="sm" className="w-full" onClick={handleViewAll}>
                 View all anomalies
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5">
-                  <path d="M5 3l4 4-4 4" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+                <ChevronRight className="h-4 w-4 ml-1" />
               </Button>
             </div>
           </>
         )}
 
-        {error && <div className="anomaly-inbox__demo-badge">Demo Data</div>}
+        {error && (
+          <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
+            Demo Data
+          </div>
+        )}
       </CardContent>
     </Card>
   );

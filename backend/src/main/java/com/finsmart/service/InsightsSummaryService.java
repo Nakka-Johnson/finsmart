@@ -105,7 +105,10 @@ public class InsightsSummaryService {
         transactionRepository.findByUserIdAndPostedAtAfter(userId, startDate);
     List<AnomalyPreview> anomaliesPreview =
         recentTransactions.stream()
-            .filter(t -> t.getAnomalyScore() != null && t.getAnomalyScore() > 0.7)
+            .filter(
+                t ->
+                    t.getAnomalyScore() != null
+                        && t.getAnomalyScore().compareTo(new BigDecimal("0.7")) > 0)
             .limit(5)
             .map(
                 t ->
@@ -116,7 +119,8 @@ public class InsightsSummaryService {
                                 : t.getMerchant())
                         .reason(generateAnomalyReason(t))
                         .amount(t.getAmount())
-                        .score(t.getAnomalyScore())
+                        .score(
+                            t.getAnomalyScore() != null ? t.getAnomalyScore().doubleValue() : 0.0)
                         .build())
             .toList();
 
@@ -145,9 +149,10 @@ public class InsightsSummaryService {
 
   /** Generate a human-readable reason for why a transaction was flagged as anomalous. */
   private String generateAnomalyReason(Transaction t) {
-    if (t.getAnomalyScore() >= 0.9) {
+    if (t.getAnomalyScore() != null && t.getAnomalyScore().compareTo(new BigDecimal("0.9")) >= 0) {
       return "Unusually large transaction";
-    } else if (t.getAnomalyScore() >= 0.8) {
+    } else if (t.getAnomalyScore() != null
+        && t.getAnomalyScore().compareTo(new BigDecimal("0.8")) >= 0) {
       return "Amount significantly above average";
     } else {
       return "Potential unusual spending pattern";

@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
-import { Card, CardHeader, CardTitle, CardContent, Skeleton } from '../../ui';
+import { TrendingUp } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent, Skeleton } from '@/components/ui';
 import { getCashRunway, type CashRunwayData } from '../../api/ai';
 import { useAuthStore } from '../../store/auth';
-import './CashRunwayWidget.css';
+import { cn } from '@/lib/utils';
 
 export function CashRunwayWidget() {
   const [data, setData] = useState<CashRunwayData | null>(null);
@@ -53,75 +54,84 @@ export function CashRunwayWidget() {
   };
 
   const getRunwayStatus = () => {
-    if (!data) return { status: 'unknown', color: 'var(--color-text-tertiary)' };
-    if (data.daysUntilLow > 60) return { status: 'healthy', color: 'var(--color-positive)' };
-    if (data.daysUntilLow > 30) return { status: 'moderate', color: 'var(--color-warning)' };
-    return { status: 'low', color: 'var(--color-danger)' };
+    if (!data) return { status: 'unknown', colorClass: 'text-muted-foreground' };
+    if (data.daysUntilLow > 60) return { status: 'healthy', colorClass: 'text-emerald-600 dark:text-emerald-400' };
+    if (data.daysUntilLow > 30) return { status: 'moderate', colorClass: 'text-amber-600 dark:text-amber-400' };
+    return { status: 'low', colorClass: 'text-destructive' };
   };
 
   if (loading) {
     return (
-      <Card className="cash-runway-widget">
+      <Card>
         <CardHeader>
-          <CardTitle>Cash Runway</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-muted-foreground" />
+            Cash Runway
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="cash-runway-widget__skeleton">
-            <Skeleton width={120} height={32} />
-            <Skeleton width={180} height={16} />
-            <Skeleton variant="rectangular" height={160} />
+          <div className="flex flex-col gap-4">
+            <Skeleton className="h-8 w-32" />
+            <Skeleton className="h-4 w-48" />
+            <Skeleton className="h-40 w-full" />
           </div>
         </CardContent>
       </Card>
     );
   }
 
-  const { color } = getRunwayStatus();
+  const { colorClass } = getRunwayStatus();
 
   return (
-    <Card className="cash-runway-widget">
+    <Card>
       <CardHeader>
-        <CardTitle>
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M2 15l4-4 4 3 8-10" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+        <CardTitle className="flex items-center gap-2">
+          <TrendingUp className="h-5 w-5 text-muted-foreground" />
           Cash Runway
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="cash-runway-widget__header">
-          <div className="cash-runway-widget__balance">
-            <span className="cash-runway-widget__label">Current Balance</span>
-            <span className="cash-runway-widget__value">{formatCurrency(data?.currentBalance || 0)}</span>
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Current Balance
+            </span>
+            <span className="text-2xl font-bold tabular-nums">
+              {formatCurrency(data?.currentBalance || 0)}
+            </span>
           </div>
-          <div className="cash-runway-widget__days" style={{ '--status-color': color } as React.CSSProperties}>
-            <span className="cash-runway-widget__days-value">{data?.daysUntilLow || 0}</span>
-            <span className="cash-runway-widget__days-label">days until {formatCurrency(data?.lowThreshold || 0)}</span>
+          <div className="text-right">
+            <span className={cn('text-3xl font-bold tabular-nums', colorClass)}>
+              {data?.daysUntilLow || 0}
+            </span>
+            <span className="block text-xs text-muted-foreground">
+              days until {formatCurrency(data?.lowThreshold || 0)}
+            </span>
           </div>
         </div>
 
-        <div className="cash-runway-widget__chart">
+        <div className="-mx-4">
           <ResponsiveContainer width="100%" height={160}>
             <AreaChart data={data?.runway || []} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="cashGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--color-primary)" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="var(--color-primary)" stopOpacity={0} />
+                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="boundsGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--color-text-tertiary)" stopOpacity={0.1} />
-                  <stop offset="95%" stopColor="var(--color-text-tertiary)" stopOpacity={0} />
+                  <stop offset="5%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0.1} />
+                  <stop offset="95%" stopColor="hsl(var(--muted-foreground))" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <XAxis
                 dataKey="date"
-                tick={{ fontSize: 11, fill: 'var(--color-text-tertiary)' }}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
                 tickLine={false}
                 axisLine={false}
                 tickFormatter={(date) => new Date(date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
               />
               <YAxis
-                tick={{ fontSize: 11, fill: 'var(--color-text-tertiary)' }}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
                 tickLine={false}
                 axisLine={false}
                 tickFormatter={(val) => `£${(val / 1000).toFixed(0)}k`}
@@ -129,12 +139,12 @@ export function CashRunwayWidget() {
               />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: 'var(--color-bg-elevated)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius-md)',
-                  fontSize: 'var(--text-sm)',
+                  backgroundColor: 'hsl(var(--popover))',
+                  border: '1px solid hsl(var(--border))',
+                  borderRadius: '8px',
+                  fontSize: '14px',
                 }}
-                formatter={(value: number) => [formatCurrency(value), 'Predicted']}
+                formatter={(value) => [formatCurrency(value as number), 'Predicted']}
                 labelFormatter={(date) => new Date(date).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' })}
               />
               <Area
@@ -147,7 +157,7 @@ export function CashRunwayWidget() {
               <Area
                 type="monotone"
                 dataKey="predictedBalance"
-                stroke="var(--color-primary)"
+                stroke="hsl(var(--primary))"
                 strokeWidth={2}
                 fill="url(#cashGradient)"
                 fillOpacity={1}
@@ -156,7 +166,11 @@ export function CashRunwayWidget() {
           </ResponsiveContainer>
         </div>
 
-        {error && <div className="cash-runway-widget__demo-badge">Demo Data</div>}
+        {error && (
+          <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
+            Demo Data
+          </div>
+        )}
       </CardContent>
     </Card>
   );

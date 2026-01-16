@@ -2,10 +2,28 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuthStore } from '@/store/auth';
 import { budgetApi, categoryApi } from '@/api/endpoints';
 import type { BudgetResponse, BudgetSummary, CategoryResponse } from '@/api/types';
-import { Card } from '@/components/Card';
+import { Card, CardContent, Button, Badge } from '@/ui';
+import { Page, PageHeader, PageContent } from '@/components/layout/Page';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
 import { Loader } from '@/components/Loader';
 import { useToast } from '@/hooks/useToast';
 import { formatCurrency } from '@/utils/format';
+import { Plus, Pencil, Trash2, PiggyBank } from 'lucide-react';
+import './Budgets.css';
 
 export function Budgets() {
   const { token } = useAuthStore();
@@ -129,197 +147,213 @@ export function Budgets() {
   };
 
   return (
-    <div className="budgets-page">
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '1.5rem',
-        }}
+    <Page>
+      <PageHeader
+        title="Budgets"
+        description="Track your spending limits"
       >
-        <h1>Budgets</h1>
-        <button onClick={handleAddClick} className="btn btn-primary">
+        <Button onClick={handleAddClick}>
+          <Plus className="h-4 w-4 mr-2" />
           Add Budget
-        </button>
-      </div>
+        </Button>
+      </PageHeader>
 
-      <Card>
-        <div className="filter-bar" style={{ marginBottom: '1.5rem' }}>
-          <select value={month} onChange={e => setMonth(parseInt(e.target.value))}>
-            <option value={1}>January</option>
-            <option value={2}>February</option>
-            <option value={3}>March</option>
-            <option value={4}>April</option>
-            <option value={5}>May</option>
-            <option value={6}>June</option>
-            <option value={7}>July</option>
-            <option value={8}>August</option>
-            <option value={9}>September</option>
-            <option value={10}>October</option>
-            <option value={11}>November</option>
-            <option value={12}>December</option>
-          </select>
+      <PageContent>
+        <Card>
+          <CardContent className="pt-6">
+            {/* Period Selector */}
+            <div className="mb-6 flex flex-wrap items-center gap-3">
+              <select
+                value={month}
+                onChange={e => setMonth(parseInt(e.target.value))}
+                className="h-9 rounded-md border border-input bg-background px-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                <option value={1}>January</option>
+                <option value={2}>February</option>
+                <option value={3}>March</option>
+                <option value={4}>April</option>
+                <option value={5}>May</option>
+                <option value={6}>June</option>
+                <option value={7}>July</option>
+                <option value={8}>August</option>
+                <option value={9}>September</option>
+                <option value={10}>October</option>
+                <option value={11}>November</option>
+                <option value={12}>December</option>
+              </select>
 
-          <input
-            type="number"
-            value={year}
-            onChange={e => setYear(parseInt(e.target.value))}
-            min="2000"
-            max="2100"
-            style={{ width: '120px' }}
-          />
-        </div>
+              <input
+                type="number"
+                value={year}
+                onChange={e => setYear(parseInt(e.target.value))}
+                min="2000"
+                max="2100"
+                className="h-9 w-24 rounded-md border border-input bg-background px-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+            </div>
 
-        {loading ? (
-          <Loader size="medium" />
-        ) : (
-          <>
-            {summary.length > 0 && (
-              <div style={{ marginBottom: '2rem' }}>
-                <h3>Summary</h3>
-                <div className="budget-summary-grid">
-                  {summary.map(s => {
-                    const percentage = getProgressPercentage(s.spentAmount, s.budgetAmount);
-                    const color = getProgressColor(s.spentAmount, s.budgetAmount);
-                    return (
-                      <div key={s.categoryId} className="budget-summary-card">
-                        <div style={{ marginBottom: '0.5rem' }}>
-                          <strong>{s.categoryName}</strong>
-                        </div>
-                        <div
-                          style={{ marginBottom: '0.5rem', fontSize: '0.875rem', color: '#666' }}
-                        >
-                          {formatCurrency(s.spentAmount)} / {formatCurrency(s.budgetAmount)}
-                        </div>
-                        <div className="progress-bar">
-                          <div
-                            className="progress-bar-fill"
-                            style={{
-                              width: `${percentage}%`,
-                              backgroundColor: color,
-                            }}
-                          />
-                        </div>
-                        {s.spentAmount > s.budgetAmount && (
-                          <div
-                            style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#ef4444' }}
-                          >
-                            Over budget by {formatCurrency(s.spentAmount - s.budgetAmount)}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+            {loading ? (
+              <div className="flex items-center justify-center py-16">
+                <Loader size="medium" />
               </div>
-            )}
-
-            <h3>Manage Budgets</h3>
-            {budgets.length === 0 ? (
-              <p style={{ textAlign: 'center', color: '#666', padding: '2rem' }}>
-                No budgets for this period
-              </p>
             ) : (
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Category</th>
-                    <th>Amount</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {budgets.map(b => (
-                    <tr key={b.id}>
-                      <td>
-                        {b.categoryName || categories.find(c => c.id === b.categoryId)?.name || '-'}
-                      </td>
-                      <td>{formatCurrency(b.amount)}</td>
-                      <td>
-                        <button onClick={() => handleEditClick(b)} className="btn btn-small">
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDelete(b.id)}
-                          className="btn btn-small btn-danger"
-                          style={{ marginLeft: '0.5rem' }}
-                        >
-                          Delete
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </>
-        )}
+              <>
+                {summary.length > 0 && (
+                  <section className="budgets-page__summary">
+                    <h3 className="budgets-page__section-title">Summary</h3>
+                    <div className="budgets-page__grid">
+                      {summary.map(s => {
+                        const percentage = getProgressPercentage(s.spentAmount, s.budgetAmount);
+                        const color = getProgressColor(s.spentAmount, s.budgetAmount);
+                        return (
+                          <Card key={s.categoryId} className="budgets-page__card">
+                            <CardContent className="p-4">
+                              <div className="budgets-page__card-header">
+                                <strong>{s.categoryName}</strong>
+                                {s.spentAmount > s.budgetAmount && (
+                                  <Badge variant="destructive">Over</Badge>
+                                )}
+                              </div>
+                              <div className="budgets-page__amounts">
+                                {formatCurrency(s.spentAmount)} / {formatCurrency(s.budgetAmount)}
+                              </div>
+                              <div className="budgets-page__progress">
+                                <div
+                                  className="budgets-page__progress-bar"
+                                  style={{
+                                    width: `${percentage}%`,
+                                    backgroundColor: color,
+                                  }}
+                                />
+                              </div>
+                              {s.spentAmount > s.budgetAmount && (
+                                <div className="budgets-page__over-budget">
+                                  Over by {formatCurrency(s.spentAmount - s.budgetAmount)}
+                                </div>
+                              )}
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+                  </section>
+                )}
+
+                <section>
+                  <h3 className="budgets-page__section-title">Manage Budgets</h3>
+                  {budgets.length === 0 ? (
+                    /* Improved Empty State */
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                      <div className="mb-4 rounded-full bg-muted p-3">
+                        <PiggyBank className="h-8 w-8 text-muted-foreground" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-foreground">
+                        No budgets for this period
+                      </h3>
+                      <p className="mt-1 mb-6 max-w-sm text-sm text-muted-foreground">
+                        Create a budget to track your spending limits and stay on top of your finances.
+                      </p>
+                      <Button onClick={handleAddClick}>
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Budget
+                      </Button>
+                    </div>
+                  ) : (
+                    <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Category</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                        <TableHead className="w-[100px]">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {budgets.map(b => (
+                        <TableRow key={b.id}>
+                          <TableCell className="font-medium">
+                            {b.categoryName || categories.find(c => c.id === b.categoryId)?.name || '-'}
+                          </TableCell>
+                          <TableCell className="text-right tabular-nums">
+                            {formatCurrency(b.amount)}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <Button size="sm" variant="ghost" onClick={() => handleEditClick(b)}>
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button size="sm" variant="ghost" onClick={() => handleDelete(b.id)}>
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </section>
+            </>
+          )}
+        </CardContent>
       </Card>
 
-      {showModal && (
-        <div className="modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>{editingBudget ? 'Edit Budget' : 'Add Budget'}</h2>
-              <button onClick={() => setShowModal(false)} className="btn btn-small">
-                ×
-              </button>
+      <Dialog open={showModal} onOpenChange={setShowModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editingBudget ? 'Edit Budget' : 'Add Budget'}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Category</label>
+              <select
+                value={formData.categoryId}
+                onChange={e => setFormData({ ...formData, categoryId: e.target.value })}
+                required
+                className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
+              >
+                <option value="">Select category</option>
+                {categories.map(c => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
             </div>
-            <form onSubmit={handleSubmit} className="modal-body">
-              <div className="form-group">
-                <label>Category</label>
-                <select
-                  value={formData.categoryId}
-                  onChange={e => setFormData({ ...formData, categoryId: e.target.value })}
-                  required
-                >
-                  <option value="">Select category</option>
-                  {categories.map(c => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
 
-              <div className="form-group">
-                <label>Amount</label>
-                <input
-                  type="number"
-                  step="0.01"
-                  value={formData.amount}
-                  onChange={e => setFormData({ ...formData, amount: parseFloat(e.target.value) })}
-                  required
-                />
-              </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Amount</label>
+              <input
+                type="number"
+                step="0.01"
+                value={formData.amount}
+                onChange={e => setFormData({ ...formData, amount: parseFloat(e.target.value) })}
+                required
+                className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm shadow-sm"
+              />
+            </div>
 
-              <div className="form-group">
-                <label>Period</label>
-                <div style={{ fontSize: '0.875rem', color: '#666' }}>
-                  {new Date(year, month - 1).toLocaleDateString('en-US', {
-                    month: 'long',
-                    year: 'numeric',
-                  })}
-                </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Period</label>
+              <div className="text-sm text-muted-foreground">
+                {new Date(year, month - 1).toLocaleDateString('en-US', {
+                  month: 'long',
+                  year: 'numeric',
+                })}
               </div>
+            </div>
 
-              <div className="modal-footer">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="btn btn-secondary"
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  {editingBudget ? 'Update' : 'Create'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
+            <DialogFooter>
+              <Button type="button" variant="secondary" onClick={() => setShowModal(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                {editingBudget ? 'Update' : 'Create'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+      </PageContent>
+    </Page>
   );
 }

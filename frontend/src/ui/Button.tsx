@@ -4,7 +4,7 @@ import { clsx } from '../utils/clsx';
 import './Button.css';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'success' | 'destructive';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
   fullWidth?: boolean;
@@ -28,12 +28,15 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref
   ) => {
+    // Map destructive to danger
+    const mappedVariant = variant === 'destructive' ? 'danger' : variant;
+    
     return (
       <button
         ref={ref}
         className={clsx(
           'ui-button',
-          `ui-button--${variant}`,
+          `ui-button--${mappedVariant}`,
           `ui-button--${size}`,
           fullWidth && 'ui-button--full',
           loading && 'ui-button--loading',

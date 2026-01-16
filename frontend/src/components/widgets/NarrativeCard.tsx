@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent, Skeleton, Badge } from '../../ui';
+import { Sparkles, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent, Skeleton, Badge } from '@/components/ui';
 import { getNarrativeInsight, type NarrativeInsight } from '../../api/ai';
 import { useAuthStore } from '../../store/auth';
-import './NarrativeCard.css';
 
 export function NarrativeCard() {
   const [data, setData] = useState<NarrativeInsight | null>(null);
@@ -51,52 +51,43 @@ export function NarrativeCard() {
   const getTrendIcon = (trend: 'up' | 'down' | 'stable') => {
     switch (trend) {
       case 'up':
-        return (
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M8 12V4M4 8l4-4 4 4" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        );
+        return <TrendingUp className="h-4 w-4" />;
       case 'down':
-        return (
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M8 4v8M4 8l4 4 4-4" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        );
+        return <TrendingDown className="h-4 w-4" />;
       default:
-        return (
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M3 8h10" strokeLinecap="round" />
-          </svg>
-        );
+        return <Minus className="h-4 w-4" />;
     }
   };
 
-  const getTrendVariant = (trend: 'up' | 'down' | 'stable') => {
+  const getTrendVariant = (trend: 'up' | 'down' | 'stable'): 'default' | 'secondary' | 'destructive' | 'outline' => {
     // For spending, down is good, up is concerning
     switch (trend) {
       case 'down':
-        return 'success';
+        return 'secondary'; // green-ish in our theme
       case 'up':
-        return 'warning';
+        return 'destructive';
       default:
-        return 'default';
+        return 'outline';
     }
   };
 
   if (loading) {
     return (
-      <Card className="narrative-card">
+      <Card>
         <CardHeader>
-          <CardTitle>AI Insights</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-muted-foreground" />
+            AI Insights
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="narrative-card__skeleton">
-            <Skeleton width="90%" height={20} />
-            <Skeleton width="70%" height={20} />
-            <div style={{ marginTop: 'var(--space-4)' }}>
-              <Skeleton width="100%" height={16} />
-              <Skeleton width="85%" height={16} />
-              <Skeleton width="90%" height={16} />
+          <div className="flex flex-col gap-4">
+            <Skeleton className="h-5 w-[90%]" />
+            <Skeleton className="h-5 w-[70%]" />
+            <div className="mt-4 flex flex-col gap-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-[85%]" />
+              <Skeleton className="h-4 w-[90%]" />
             </div>
           </div>
         </CardContent>
@@ -105,50 +96,54 @@ export function NarrativeCard() {
   }
 
   return (
-    <Card className="narrative-card">
-      <CardHeader>
-        <CardTitle>
-          <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M10 2a8 8 0 1 0 8 8" strokeLinecap="round" />
-            <path d="M10 6v4l3 2" strokeLinecap="round" strokeLinejoin="round" />
-            <circle cx="15" cy="5" r="3" fill="var(--color-primary)" stroke="none" />
-          </svg>
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="flex items-center gap-2">
+          <Sparkles className="h-5 w-5 text-primary" />
           AI Insights
         </CardTitle>
         {data?.trend && (
-          <Badge variant={getTrendVariant(data.trend)} size="sm">
+          <Badge variant={getTrendVariant(data.trend)} className="flex items-center gap-1">
             {getTrendIcon(data.trend)}
             Spending {data.trend}
           </Badge>
         )}
       </CardHeader>
       <CardContent>
-        <p className="narrative-card__summary">{data?.summary}</p>
+        <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+          {data?.summary}
+        </p>
 
         {data?.highlights && data.highlights.length > 0 && (
-          <ul className="narrative-card__highlights">
+          <ul className="space-y-2 mb-4">
             {data.highlights.map((highlight, index) => (
-              <li key={index} className="narrative-card__highlight">
-                <span className="narrative-card__highlight-bullet" />
-                {highlight}
+              <li key={index} className="flex items-start gap-2 text-sm">
+                <span className="mt-2 h-1.5 w-1.5 rounded-full bg-primary flex-shrink-0" />
+                <span className="text-foreground">{highlight}</span>
               </li>
             ))}
           </ul>
         )}
 
         {data?.topCategory && (
-          <div className="narrative-card__top-category">
-            <span className="narrative-card__top-category-label">Top spending category</span>
-            <div className="narrative-card__top-category-value">
-              <span>{data.topCategory}</span>
-              <span className="narrative-card__top-category-amount">
+          <div className="pt-3 border-t">
+            <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+              Top spending category
+            </span>
+            <div className="flex items-center justify-between mt-1">
+              <span className="font-medium">{data.topCategory}</span>
+              <span className="text-sm text-muted-foreground tabular-nums">
                 {formatCurrency(data.topCategorySpend)}
               </span>
             </div>
           </div>
         )}
 
-        {error && <div className="narrative-card__demo-badge">Demo Data</div>}
+        {error && (
+          <div className="mt-3 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
+            Demo Data
+          </div>
+        )}
       </CardContent>
     </Card>
   );

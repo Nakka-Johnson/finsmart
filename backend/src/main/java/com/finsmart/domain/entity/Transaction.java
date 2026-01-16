@@ -57,13 +57,13 @@ public class Transaction {
   private String normalizedMerchant;
 
   @Column(precision = 5, scale = 4)
-  private Double merchantConfidence;
+  private BigDecimal merchantConfidence;
 
   @Column(precision = 5, scale = 4)
-  private Double categoryConfidence;
+  private BigDecimal categoryConfidence;
 
   @Column(precision = 5, scale = 4)
-  private Double anomalyScore;
+  private BigDecimal anomalyScore;
 
   @Column(length = 512)
   private String notes;
