@@ -55,12 +55,13 @@ def test_validation_negative_amount():
 
 
 def test_validation_empty_category():
-    """Test that empty category is allowed (it's optional)."""
+    """Test that empty or None category is accepted (category is optional)."""
     try:
         Txn(date="2025-01-01", amount=10.0, category="", direction="DEBIT")
-        print("✅ Empty category validation passed (category is optional)")
+        Txn(date="2025-01-01", amount=10.0, category=None, direction="DEBIT")
+        print("✅ Empty/None category validation passed (category is optional)")
     except Exception:
-        print("✅ Empty category validation passed")
+        print("❌ Empty/None category validation failed")
 
 
 if __name__ == "__main__":
