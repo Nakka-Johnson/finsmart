@@ -13,7 +13,9 @@ from app.models import AnalyzeRequest, Txn
 def test_health():
     """Test health endpoint."""
     result = health()
-    assert result.status == "ai ok"
+    assert result.status == "healthy"
+    assert result.service == "ai"
+    assert result.uptime_seconds >= 0
     print("✅ Health check passed")
 
 
